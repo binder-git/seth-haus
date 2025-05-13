@@ -1,0 +1,2 @@
+# Netlify Python Function Dependencies
+requests
