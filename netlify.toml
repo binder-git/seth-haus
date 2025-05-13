@@ -1,0 +1,28 @@
+# This section defines build settings for your site.
+[build]
+  # Command to build your React frontend.
+  # It changes to the 'ui' directory, installs dependencies, and runs the build script.
+  command = "cd ui && npm install && npm run build"
+
+  # The directory (relative to the root of your project) that contains the deploy-ready
+  # assets after the build command completes. For Vite/React, this is usually 'ui/dist'.
+  publish = "ui/dist"
+
+  # The directory where your Netlify serverless functions will reside.
+  functions = "netlify/functions"
+
+# This rule ensures that any direct navigation to a frontend route (e.g., /products-page)
+# is handled by your React app's router (by serving index.html).
+# This is essential for Single Page Applications (SPAs).
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200 # A 200 status indicates a rewrite (serve this file) not a 301/302 redirect.
+
+# This rule proxies API calls made from your frontend (e.g., /api/get-something)
+# to your Netlify serverless functions.
+# For example, a request to /api/myfunction will be routed to /.netlify/functions/myfunction.
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat" # The :splat captures the part after /api/
+  status = 200 # Indicates a rewrite/proxy.
