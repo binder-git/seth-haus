@@ -1,7 +1,10 @@
+# Environment variables
 *.env
 .env.*
+
 # Local Netlify folder
 .netlify
+
 # macOS
 .DS_Store
 
@@ -10,22 +13,39 @@ __pycache__/
 *.py[cod]
 *$py.class
 .venv/
-.python-version 
-# If you have other venv names, add them too, e.g., venv/, env/
+venv/
+env/
+.python-version
 
 # Node / Vite / React
 node_modules/
-dist/ # If your Vite build output 'dist' is within ui/ and ui/dist is your publish dir, this is okay.
-      # If you have a top-level dist/ that's different, consider that.
+dist/
 .npm
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.pnp.*
+
+# Testing
+coverage/
+
 # IDE / Editor specific
 .vscode/
 .idea/
+*.swp
+*.swo
 
-# Netlify specific (usually not needed if config is in netlify.toml)
-# .netlify/ 
-# Usually, you only want to ignore .netlify/state.json or similar local dev state if anything.
-# For functions, the source is in netlify/functions, which IS committed.
+# Build outputs
+ui/dist/
+ui/.cache/
+
+# Temporary files
+*.tmp
+*.temp
+temp.*
+
+# Local dev state
+.netlify/state.json
