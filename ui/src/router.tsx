@@ -1,31 +1,18 @@
-import { lazy, type ReactNode, Suspense } from "react";
+import type { ReactNode } from './react-types';
 import { createBrowserRouter } from "react-router-dom";
 import { userRoutes } from "./user-routes";
+import { CommerceLayerLogin } from "./components/CommerceLayerLogin";
 
-export const SuspenseWrapper = ({ children }: { children: ReactNode }) => {
-  return <Suspense>{children}</Suspense>;
-};
-
-const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
-const SomethingWentWrongPage = lazy(
-  () => import("./pages/SomethingWentWrongPage"),
-);
+import NotFoundPage from "pages/NotFoundPage";
+import SomethingWentWrongPage from "pages/SomethingWentWrongPage";
 
 export const router = createBrowserRouter(
   [
     ...userRoutes,
     {
       path: "*",
-      element: (
-        <SuspenseWrapper>
-          <NotFoundPage />
-        </SuspenseWrapper>
-      ),
-      errorElement: (
-        <SuspenseWrapper>
-          <SomethingWentWrongPage />
-        </SuspenseWrapper>
-      ),
+      element: <NotFoundPage />,
+      errorElement: <SomethingWentWrongPage />,
     },
   ]
 );

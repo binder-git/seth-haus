@@ -1,12 +1,14 @@
 import { create } from 'zustand';
-import { Market } from './types';
+import { Market } from '@/utils/types';
 
+// Define the store state and actions
 interface MarketState {
-  market: Market; // Renamed from selectedMarket
+  market: Market | undefined;
   setMarket: (market: Market) => void;
-}
+};
 
+// Create the Zustand store
 export const useMarketStore = create<MarketState>((set) => ({
-  market: 'UK', // Renamed from selectedMarket, Default to UK market
-  setMarket: (market) => set({ market: market }), // Update market
+  market: { name: 'UK' as const, id: 'uk-market', countryCode: 'GB', currencyCode: 'GBP' },
+  setMarket: (market) => set({ market }),
 }));

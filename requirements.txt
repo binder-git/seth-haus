@@ -1,2 +1,12 @@
 # Netlify Python Function Dependencies
-requests
+requests==2.31.0
+fastapi==0.109.0
+python-dotenv==1.0.0
+python-multipart==0.0.9
+pydantic==2.6.1
+uvicorn==0.27.0.post1
+commerce-layer==2.0.0  # Commerce Layer SDK
+netlifysdk==0.1.0  # Optional: Netlify SDK if needed
+pyjwt==2.8.0  # JWT token handling
+pyJWT==2.8.0  # Alternative JWT library
+requests-oauthlib==1.4.0  # OAuth support

@@ -1,4 +1,4 @@
-import { Market, Product, ProductPricing } from "./types";
+import { Market, Product, ProductPricing, validateCategory, validateBrand } from "./types";
 import { CommerceLayerProduct, ProductImage, ProductAttribute } from "./commerce-layer-service";
 
 // Map Commerce Layer product to our app's product format
@@ -6,9 +6,11 @@ export const mapCommerceLayerProductToAppProduct = (
   clProduct: CommerceLayerProduct,
   currentMarket: Market
 ): Product => {
-  // Extract attributes from the product
+  // Extract attributes from the product safely
   const getAttributeValue = (name: string): string | undefined => {
-    return clProduct.attributes?.find(attr => attr.name === name)?.value;
+    return clProduct.attributes && clProduct.attributes.length > 0 
+      ? clProduct.attributes.find(attr => attr.name === name)?.value
+      : undefined;
   };
 
   // Get pricing information
@@ -17,25 +19,25 @@ export const mapCommerceLayerProductToAppProduct = (
   if (clProduct.price) {
     // Create pricing object for the current market
     pricing[currentMarket] = {
-      price: clProduct.price.amount_float,
-      currency: clProduct.price.currency_code,
+      price: clProduct.price.amount_float ?? 0,
+      currency: clProduct.price.currency_code ?? 'EUR',
       symbol: clProduct.price.currency_code === 'GBP' ? '£' : '€',
-      formatted: clProduct.price.formatted, // Use the formatted string from CL
+      formatted: clProduct.price.formatted ?? '', // Use the formatted string from CL
     };
   }
 
-  // Map product fields
+  // Map product fields with null checks
   return {
-    id: clProduct.id,
-    code: clProduct.code, // Added mapping for SKU code
-    name: clProduct.name,
-    description: clProduct.description || '',
-    image: clProduct.image_url || (clProduct.images?.[0]?.url || ''), // Keep existing image logic as a fallback or primary display
-    image_url: clProduct.image_url, // Ensure image_url is populated for ProductItemCard
-    category: clProduct.category || 'uncategorized',
-    brand: getAttributeValue('brand') || '',
-    available: clProduct.available === undefined ? true : clProduct.available, // Default to true if undefined, for safety
-    rating: parseFloat(getAttributeValue('rating') || '0'),
+    id: clProduct.id ?? '',
+    code: clProduct.code ?? '', // Added mapping for SKU code
+    name: clProduct.name ?? 'Unnamed Product',
+    description: clProduct.description ?? '',
+    image: clProduct.image_url || (clProduct.images?.[0]?.url ?? ''), // Keep existing image logic as a fallback or primary display
+    image_url: clProduct.image_url ?? '', // Ensure image_url is populated for ProductItemCard
+    category: validateCategory(clProduct.category),
+    brand: validateBrand(getAttributeValue('brand')),
+    available: clProduct.available ?? true, // Default to true if undefined, for safety
+    rating: parseFloat(getAttributeValue('rating') ?? '0'),
     new: getAttributeValue('new') === 'true',
     bestSeller: getAttributeValue('best_seller') === 'true',
     featured: getAttributeValue('featured') === 'true',

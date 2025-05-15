@@ -6,6 +6,10 @@ export interface CLCoreConfigResponse {
   baseUrl: string;
   /** Marketidmap */
   marketIdMap: Record<string, string>;
+  /** Optional detail for error handling */
+  detail?: string;
+  /** Endpoint */
+  endpoint?: string;
 }
 
 /** HTTPValidationError */
@@ -129,6 +133,8 @@ export interface TokenResponse {
   endpoint: string;
   /** Organization */
   organization: string;
+  /** Optional detail for error handling */
+  detail?: string;
 }
 
 /** ValidationError */
@@ -179,6 +185,14 @@ export interface CartResponse {
    * @default []
    */
   line_items?: LineItem[];
+}
+
+/** Market */
+export type Market = {
+  name: 'UK' | 'EU';
+  id: string;
+  countryCode?: string;
+  currencyCode?: string;
 }
 
 /** CheckoutConfigResponse */

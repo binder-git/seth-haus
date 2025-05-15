@@ -1,8 +1,20 @@
-export type Market = "UK" | "EU";
+export type Market = "UK" | "EU" | { name: string; id: string; countryCode?: string; currencyCode?: string; };
 
-export type Category = "swim" | "bike" | "run" | "triathlon";
+export type Category = "swim" | "bike" | "run" | "triathlon" | "uncategorized";
 
-export type ProductBrand = "BlueSeventy" | "HUUB" | "Zone3" | "Orca" | "Cervelo" | "Canyon" | "Specialized" | "Trek" | "HOKA" | "Nike" | "Asics" | "ON" | "2XU" | "Castelli" | "Zoot" | "TYR";
+export type ProductBrand = "BlueSeventy" | "HUUB" | "Zone3" | "Orca" | "Cervelo" | "Canyon" | "Specialized" | "Trek" | "HOKA" | "Nike" | "Asics" | "ON" | "2XU" | "Castelli" | "Zoot" | "TYR" | "";
+
+// Helper function to validate and default category
+export const validateCategory = (category: string | null | undefined): Category => {
+  const validCategories: Category[] = ["swim", "bike", "run", "triathlon"];
+  return category && validCategories.includes(category as Category) ? category as Category : "uncategorized";
+};
+
+// Helper function to validate and default brand
+export const validateBrand = (brand: string | null | undefined): ProductBrand => {
+  const validBrands: ProductBrand[] = ["BlueSeventy", "HUUB", "Zone3", "Orca", "Cervelo", "Canyon", "Specialized", "Trek", "HOKA", "Nike", "Asics", "ON", "2XU", "Castelli", "Zoot", "TYR"];
+  return brand && validBrands.includes(brand as ProductBrand) ? brand as ProductBrand : "";
+};
 
 export interface ProductPricing {
   price: number;
@@ -28,7 +40,7 @@ export interface Product {
   colors?: string[];
   sizes?: string[];
   pricing: {
-    [market in Market]?: ProductPricing;
+    [market in Market['name']]?: ProductPricing;
   };
 }
 

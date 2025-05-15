@@ -5,31 +5,28 @@ import { MarketSwitcher } from "./MarketSwitcher"; // Correct component
 // Removed Button as cl-cart-link will handle the click
 import { useAppContext } from "./AppProvider"; // Import context hook
 
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      "cl-cart-link": React.DetailedHTMLProps<
+        React.HTMLAttributes<HTMLElement>,
+        HTMLElement
+      >;
+      "cl-cart-count": React.DetailedHTMLProps<
+        React.HTMLAttributes<HTMLElement>,
+        HTMLElement
+      >;
+      "cl-cart": React.DetailedHTMLProps<
+        React.HTMLAttributes<HTMLElement>,
+        HTMLElement
+      >;
+    }
+  }
+}
+
 export default function SimpleHeader() {
   const navigate = useNavigate();
   const { clReady } = useAppContext(); // Get clReady state from context
-
-  // All state, refs, and effects related to the old minicart have been removed.
-
-  // Explicitly declare types for new custom elements
-  declare global {
-    namespace JSX {
-      interface IntrinsicElements {
-        "cl-cart-link": React.DetailedHTMLProps<
-          React.HTMLAttributes<HTMLElement>,
-          HTMLElement
-        >;
-        "cl-cart-count": React.DetailedHTMLProps<
-          React.HTMLAttributes<HTMLElement>,
-          HTMLElement
-        >;
-        "cl-cart": React.DetailedHTMLProps<
-          React.HTMLAttributes<HTMLElement>,
-          HTMLElement
-        >;
-      }
-    }
-  }
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">

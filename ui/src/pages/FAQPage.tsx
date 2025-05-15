@@ -3,7 +3,7 @@ import {
   Accordion,
   AccordionContent,
   AccordionItem,
-  AccordionTrigger,
+  AccordionTrigger
 } from "@/components/ui/accordion";
 
 const faqData = [
@@ -24,7 +24,7 @@ const faqData = [
   {
     question: "What tools did you use?",
     answer:
-      "I used Databutton for all the development tasks and project management, and Commerce Layer as the ecommerce API backend.",
+      "I used React, Vite, Netlify, and Commerce Layer to build this prototype.",
   },
   // Add more FAQ items here if needed
 ];

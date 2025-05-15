@@ -1,12 +1,15 @@
-import { Helmet } from "react-helmet";
+import { useEffect } from "react";
 import fonts from "../fonts.json";
 
 export const Head = () => {
-  return (
-    <Helmet>
-      {fonts.map((font) => (
-        <link key={font} href={font} rel="stylesheet" />
-      ))}
-    </Helmet>
-  );
+  useEffect(() => {
+    fonts.forEach((font) => {
+      const link = document.createElement('link');
+      link.href = font;
+      link.rel = 'stylesheet';
+      document.head.appendChild(link);
+    });
+  }, []);
+
+  return null;
 };

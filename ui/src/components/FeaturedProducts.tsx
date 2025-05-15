@@ -1,20 +1,21 @@
 import React, { useState, useEffect, useMemo } from "react"; // Added useMemo
 import { Link } from "react-router-dom";
 import { useMarketStore } from "../utils/market-store"; // Use Zustand store
-import brain from "brain"; // Import brain client
-import { ProductResponse } from "types"; // Import response type
+import { Brain } from "../brain/Brain";
+import { ProductResponse } from "../brain/data-contracts";
 import { ProductItemCard } from "components/ProductItemCard"; // Import the standard product card
-import { Skeleton } from "@/components/ui/skeleton"; // Import Skeleton for loading
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"; // For errors
-import { AlertTriangle } from "lucide-react"; // Error icon
+import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertTriangle } from "lucide-react";
 
-// Remove Props interface and selectedMarket prop
-const FeaturedProductsComponent = ({ className = "" }: { className?: string }) => {
-  // Get market directly using the correct property name
-  const market = useMarketStore((state) => state.market);
-  console.log("[FeaturedProducts] Initial market from store:", market); // Log initial market
+const FeaturedProductsComponent: React.FC<{ className?: string }> = ({ className }) => {
+  const { market } = useMarketStore();
+
+  const marketName = (typeof market === 'object' && market !== null ? market.name : market || 'UK') as 'UK' | 'EU';
+
   const [products, setProducts] = useState<ProductResponse[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [filteredProducts, setFilteredProducts] = useState<ProductResponse[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -22,7 +23,7 @@ const FeaturedProductsComponent = ({ className = "" }: { className?: string }) =
     const fetchFeaturedProducts = async () => {
       // Add guard to ensure market is valid before fetching
       // Check the actual market value from the store
-      if (!market || (market !== 'UK' && market !== 'EU')) {
+      if (!market) {
         console.warn("Market not selected or invalid, skipping featured product fetch.");
         setProducts([]); // Ensure products are cleared if market is invalid
         setIsLoading(false);
@@ -33,18 +34,19 @@ const FeaturedProductsComponent = ({ className = "" }: { className?: string }) =
       setError(null);
       try {
         // Fetch featured products for the current market
-        const response = await brain.get_featured_products({ market });
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+        const brainClient = new Brain();
+        const response = await brainClient.get_featured_products({ market: marketName });
+        if (!response) {
+          throw new Error('Failed to fetch featured products');
         }
-        const data: ProductResponse[] = await response.json();
+        const data = response.data;
         console.log("[FeaturedProducts] API Response data:", data); // Log fetched data
         // Ensure data is an array before setting
         setProducts(Array.isArray(data) ? data : []); 
       } catch (err) {
-        console.error("Failed to fetch featured products:", err);
-        setError("Failed to load featured products. Please try again later.");
-        setProducts([]); // Clear products on error
+        console.error('[FeaturedProducts] Error fetching featured products:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load featured products. Please try again later.');
+        setProducts([]);
       } finally {
         setIsLoading(false);
       }
@@ -111,7 +113,7 @@ const FeaturedProductsComponent = ({ className = "" }: { className?: string }) =
               // Wrap ProductItemCard with Link
               <Link
                 key={product.id} 
-                to={`/product-detail-page?sku=${product.code}&market=${market}`}
+                to={`/product-detail-page?sku=${product.code}&market=${marketName}`}
                 className="block focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 rounded-lg"
                 aria-label={`View details for ${product.name}`}
               >
@@ -129,4 +131,14 @@ const FeaturedProductsComponent = ({ className = "" }: { className?: string }) =
   );
 };
 
-export const FeaturedProducts = React.memo(FeaturedProductsComponent);
+import { Market } from 'types';
+
+interface FeaturedProductsProps {
+  selectedMarket?: Market;
+}
+
+const FeaturedProducts = ({ selectedMarket }: FeaturedProductsProps) => {
+  return <FeaturedProductsComponent className={selectedMarket?.name} />;
+};
+
+export default React.memo(FeaturedProducts);

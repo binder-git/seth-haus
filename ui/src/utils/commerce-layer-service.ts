@@ -1,18 +1,19 @@
-import brain from "brain";
+import { Brain } from "../brain/Brain";
 import { Market } from "./types";
 import { ProductResponse, ProductPrice, ProductImage, ProductAttribute } from "../brain/data-contracts";
 
 // Alias for better readability
 export type CommerceLayerProduct = ProductResponse;
-export { ProductPrice, ProductImage, ProductAttribute };
+export type { ProductPrice, ProductImage, ProductAttribute };
 
 // This interface matches the response from the backend API
 export interface ProductsResponse {
   products: CommerceLayerProduct[];
+  detail?: any; // Optional detail field
 }
 
 // Cache for products to avoid unnecessary requests
-let productCache: { [key in Market]?: CommerceLayerProduct[] } = {};
+export let productCache: { [key in Market]?: CommerceLayerProduct[] } = {};
 
 // Function to get products from Commerce Layer or mock API fallback
 export const getCommerceLayerProducts = async (market: Market): Promise<CommerceLayerProduct[]> => {
@@ -24,37 +25,23 @@ export const getCommerceLayerProducts = async (market: Market): Promise<Commerce
 
     // First try Commerce Layer API
     try {
-      const response = await brain.get_products({
+      const brainInstance = new Brain();
+      const response = await brainInstance.get_commerce_layer_products({
         market
       });
 
-      if (response.ok) {
-        const data: ProductsResponse = await response.json();
-        // Cache the products
-        productCache[market] = data.products;
-        console.log(`Fetched ${data.products.length} products from Commerce Layer`);
-        return data.products;
-      }
+      // Assuming the response has a 'data' property with 'products'
+      const products = response.data.products;
+      // Cache the products
+      productCache[market] = products;
+      console.log(`Fetched ${products.length} products from Commerce Layer`);
+      return products;
     } catch (e) {
       console.warn("Commerce Layer API failed, falling back to mock data", e);
     }
     
-    // If Commerce Layer fails, use mock API as fallback
-    const mockResponse = await brain.mock_products_get_products({
-      market
-    });
-
-    if (!mockResponse.ok) {
-      throw new Error(`Failed to fetch mock products: ${mockResponse.statusText}`);
-    }
-
-    const mockData: ProductsResponse = await mockResponse.json();
-    
-    // Cache the products
-    productCache[market] = mockData.products;
-    console.log(`Fetched ${mockData.products.length} products from mock API`);
-    
-    return mockData.products;
+    // If Commerce Layer fails, return empty array
+    return [];
   } catch (error) {
     console.error("Error fetching products:", error);
     return [];
@@ -91,11 +78,14 @@ export const extractProductAttributes = (
   const values = new Set<string>();
   
   products.forEach(product => {
-    product.attributes.forEach(attr => {
-      if (attr.name.toLowerCase() === attributeName.toLowerCase()) {
-        values.add(attr.value);
-      }
-    });
+    // Add null check for attributes
+    if (product.attributes) {
+      product.attributes.forEach(attr => {
+        if (attr.name.toLowerCase() === attributeName.toLowerCase()) {
+          values.add(attr.value);
+        }
+      });
+    }
   });
   
   return Array.from(values);
@@ -106,6 +96,9 @@ export const getProductAttribute = (
   product: CommerceLayerProduct, 
   attributeName: string
 ): string | undefined => {
+  // Add null check for attributes
+  if (!product.attributes) return undefined;
+
   const attribute = product.attributes.find(
     attr => attr.name.toLowerCase() === attributeName.toLowerCase()
   );

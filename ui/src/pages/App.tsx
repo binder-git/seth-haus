@@ -1,28 +1,37 @@
 import React from "react";
 import { useMarketStore } from "utils/market-store"; // Import the global store
-import SimpleHeader from "components/SimpleHeader";
 import { TriHero } from "components/TriHero";
 import { Categories } from "components/Categories";
-import { FeaturedProducts } from "components/FeaturedProducts";
+import { Market } from '@/utils/types';
+import FeaturedProducts from "components/FeaturedProducts";
 import { ShippingInfo } from "components/ShippingInfo";
-import { SimpleFooter } from "components/SimpleFooter";
-import { Market } from "utils/types";
+import { CommerceLayerProvider } from "@/contexts/CommerceLayerContext";
 
 export default function App() {
   // Use the global market store
   const { market, setMarket } = useMarketStore();
 
+  // Ensure market is always defined
+  const selectedMarket = market || {
+    name: 'UK',
+    id: 'uk-market',
+    countryCode: 'GB',
+    currencyCode: 'GBP'
+  };
+
   return (
-    <>
+    <CommerceLayerProvider>
       {/* <SimpleHeader /> No longer needed, AppProvider handles Header */}
       <main className="flex-grow">
         {/* Previous comment: Pass selectedMarket from global store, remove onMarketChange */}
-        <TriHero />
-        <Categories />
-        <FeaturedProducts selectedMarket={market} />
-        <ShippingInfo selectedMarket={market} />
+        <section>
+          <TriHero />
+          <Categories />
+          <FeaturedProducts selectedMarket={selectedMarket} />
+          <ShippingInfo selectedMarket={selectedMarket} />
+        </section>
       </main>
       {/* <SimpleFooter /> No longer needed, AppProvider handles Footer */}
-    </>
+    </CommerceLayerProvider>
   );
 }

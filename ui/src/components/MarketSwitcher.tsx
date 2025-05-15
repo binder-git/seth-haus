@@ -1,24 +1,24 @@
 import React from "react";
 import { ChevronDown } from "lucide-react"; // Import chevron icon
 import { useMarketStore } from "../utils/market-store"; // Import store
-import { Market } from "utils/types";
+import { Market } from "@/utils/types";
 
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
+} from "@/extensions/shadcn/components/dropdown-menu";
+import { Button } from "@/extensions/shadcn/components/button";
 
 export const MarketSwitcher = ({ className = "" }: { className?: string }) => {
-  const { market, setMarket } = useMarketStore();
+  const { market = { name: 'UK', id: 'uk-market', countryCode: 'GB', currencyCode: 'GBP' }, setMarket } = useMarketStore();
 
   const handleMarketChange = (newMarket: Market) => {
     setMarket(newMarket);
   };
 
-  const displayMarket = market === "UK" ? "🇬🇧 UK (£)" : "🇪🇺 EU (€)";
+  const displayMarket = (typeof market === 'string' ? market : market.name) === "UK" ? "🇬🇧 UK (£)" : "🇪🇺 EU (€)";
 
   return (
     <DropdownMenu>
@@ -32,13 +32,13 @@ export const MarketSwitcher = ({ className = "" }: { className?: string }) => {
       <DropdownMenuContent align="end">
         <DropdownMenuItem 
           onClick={() => handleMarketChange("UK")} 
-          disabled={market === "UK"}
+          disabled={(typeof market === 'string' ? market : market.name) === "UK"}
         >
           🇬🇧 UK (GBP £)
         </DropdownMenuItem>
         <DropdownMenuItem 
           onClick={() => handleMarketChange("EU")} 
-          disabled={market === "EU"}
+          disabled={(typeof market === 'string' ? market : market.name) === "EU"}
         >
           🇪🇺 EU (EUR €)
         </DropdownMenuItem>
