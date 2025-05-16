@@ -1,44 +1,102 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import brain from "brain";
-import { ProductDetailResponse } from "types"; // Generated type
-import { useAppContext } from "components/AppProvider"; // Import App context
+import brain from "@/brain";
+import type { 
+  ProductDetailResponse, 
+  ProductResponse,
+  ProductPrice,
+  ProductImage as ApiProductImage,
+  ProductAttribute,
+  ProductsResponse
+} from "@/brain/data-contracts";
+import type { Brain as BrainClient } from "@/brain/Brain";
+import type { Category, ProductBrand } from "@/types/models/product";
+import { useAppContext } from "@/components/AppProvider";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react"; // Removed Loader2, added ShoppingCart
+// Removed unused imports
+import { toast } from "sonner";
+import { ProductItemCard } from "@/components/ProductItemCard";
+import { Link } from "react-router-dom";
+import { ShoppingCart } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { toast } from "sonner"; // Import toast
-// Removed: import { useCartStore } from "../utils/cart-store";
-import { ProductItemCard } from "components/ProductItemCard"; // Import ProductItemCard
-import { ProductResponse as CommerceLayerProduct } from "types"; // Import the type for product list items
-import { Link } from "react-router-dom"; // Import Link
 
-// --- Commerce Layer API Types (Simplified) ---
+// Extend the BrainClient type to include the get method
+declare module "@/brain/Brain" {
+  interface Brain<T = unknown> {
+    /**
+     * Make a GET request to the specified URL
+     * @template T Expected response data type
+     * @param url The URL to make the request to
+     * @returns Promise with the response data
+     */
+    get: <T = unknown>(url: string) => Promise<{ data: T }>;
+  }
+}
+
+// Local Types
+interface ProductImage {
+  url: string;
+  alt?: string;
+}
+
+interface ProductVariant {
+  id: string;
+  name: string;
+  sku: string;
+  price: number;
+  inStock: boolean;
+  attributes: Record<string, string>;
+}
+
+interface ProductDetails {
+  id: string;
+  sku: string;
+  name: string;
+  description?: string | null;
+  price?: number | null;
+  pricing?: ProductPrice | null;
+  images: ProductImage[];
+  variants: ProductVariant[];
+  attributes: ProductAttribute[];
+  available: boolean;
+  category?: string | null;
+  brand?: string;
+  longDescription?: string;
+  specifications?: Record<string, string>;
+  relatedProducts?: any[];
+}
 
 const ProductDetailPage: React.FC = () => {
-  console.log("[ProductDetailPage] Component rendering..."); // Log start
-  const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
-  
-  // Get SKU and Market directly from URL
-  const sku = searchParams.get("sku");
-  const market = searchParams.get("market"); // Ensure this matches the param name in the Link
-  console.log(`[ProductDetailPage] Received URL Params - SKU: ${sku}, Market: ${market}`);
-
-  // Use market context later if needed, but log URL params first
-  const { currentMarketId, baseUrl, configReady, market: contextMarket, clScriptReady, clReady } = useAppContext();
-
-  const [product, setProduct] = useState<ProductDetailResponse | null>(null);
+  // State
+  const [product, setProduct] = useState<Partial<ProductDetails> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  // Removed: accessToken, orderId, isAddingToCart state, cart store state
-  const [relatedProducts, setRelatedProducts] = useState<CommerceLayerProduct[]>([]);
+  const [relatedProducts, setRelatedProducts] = useState<ProductResponse[]>([]);
   const [isRelatedLoading, setIsRelatedLoading] = useState(false);
   const [relatedError, setRelatedError] = useState<string | null>(null);
+  
+  // Hooks
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const { currentMarketId, baseUrl, configReady } = useAppContext();
+  
+  // Get SKU and market from URL
+  const sku = searchParams.get('sku');
+  const market = searchParams.get('market') || currentMarketId;
+  
+  console.log("[ProductDetailPage] Component rendering...");
+  console.log(`[ProductDetailPage] URL Params - SKU: ${sku}, Market: ${market}`);
+  
+  // Type assertion for the brain instance
+  const typedBrain = brain as unknown as BrainClient<unknown> & {
+    get: <T = unknown>(url: string) => Promise<{ data: T }>;
+  };
 
-  // 2. Fetch Product Details
+  // Fetch product details when component mounts or SKU/market changes
   useEffect(() => {
     if (!sku || !market) {
       setError("Product SKU or Market information missing.");
@@ -46,71 +104,133 @@ const ProductDetailPage: React.FC = () => {
       return;
     }
 
-    const fetchProductDetails = async () => {
+    let isMounted = true;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+
+    const fetchProduct = async () => {
+      if (!sku) return;
+      
       setIsLoading(true);
       setError(null);
-      setProduct(null);
-      console.log(`[PDP] Fetching details for SKU: ${sku}, Market: ${market}`);
+      
       try {
-        // Pass market explicitly (even though context has it, API expects it)
-        const response = await brain.get_product_details({ skuCode: sku, market: market });
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          console.error("[PDP] API Error fetching product:", errorData);
-          if (response.status === 404) {
-            throw new Error(`Product with SKU '${sku}' was not found in the ${market} market.`);
-          } else {
-            throw new Error(`Failed to fetch product details (Status: ${response.status})`);
+        console.log(`[PDP] Fetching product with SKU: ${sku}`);
+        const response = await typedBrain.get<ProductDetailResponse>(`/api/products/${sku}`);
+        
+        if (response?.data) {
+          console.log("[PDP] Product data received from API:", response.data);
+          if (isMounted) {
+            const productData: ProductDetails = {
+              ...response.data,
+              price: response.data.price?.amount_cents || 0,
+              pricing: response.data.price || null,
+              images: (response.data.images || []).map((img: ApiProductImage) => ({
+                url: img.url,
+                alt: img.alt || response.data.name
+              })),
+              available: response.data.available || false,
+              variants: [],
+              attributes: (response.data as any).attributes || [] as ProductAttribute[]
+            };
+            
+            setProduct(productData);
+            
+            // Fetch related products if category exists
+            if (response.data.category) {
+              fetchRelatedProducts(response.data.category, market);
+            }
           }
+        } else {
+          throw new Error('No product data received from API');
         }
-
-        const data: ProductDetailResponse = await response.json();
-        console.log("[PDP] Product data received from API:", data); // Log the received data
-        setProduct(data);
       } catch (err: any) {
-        console.error("[PDP] Error fetching product details:", err);
-        setError(err.message || "An unknown error occurred while loading the product.");
+        if (isMounted) {
+          const errorMsg = err.name === 'AbortError' 
+            ? 'Request timed out. Please try again.'
+            : err.message || 'An unknown error occurred while loading the product.';
+          
+          console.error("[PDP] Error fetching product:", err);
+          setError(errorMsg);
+        }
       } finally {
-        setIsLoading(false);
+        if (isMounted) {
+          clearTimeout(timeoutId);
+          setIsLoading(false);
+        }
       }
     };
 
-    fetchProductDetails();
-  }, [sku, market]); // Re-fetch if SKU or market changes
+    fetchProduct();
+    
+    return () => {
+      isMounted = false;
+      controller.abort();
+      clearTimeout(timeoutId);
+    };
+  }, [sku, market]);
 
-  // Effect to fetch related products when main product loads
-  useEffect(() => {
-    if (product && market) {
-      const fetchRelatedProducts = async () => {
-        setIsRelatedLoading(true);
-        setRelatedError(null);
-        setRelatedProducts([]);
-        console.log(`[PDP] Fetching related products for market: ${market}`);
-        try {
-          // Fetch products from the same market (no specific category for now)
-          const response = await brain.get_commerce_layer_products({ market: market });
-          if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error("Failed to fetch related products");
-          }
-          const data = await response.json();
-          // Filter out the current product and limit to 4
-          const filteredProducts = data.products
-            .filter((p: CommerceLayerProduct) => p.code !== product.sku)
-            .slice(0, 4);
-          setRelatedProducts(filteredProducts);
-          console.log(`[PDP] Found ${filteredProducts.length} related products.`);
-        } catch (err: any) {
-          console.error("[PDP] Error fetching related products:", err);
-          setRelatedError(err.message || "Could not load related products.");
-        } finally {
-          setIsRelatedLoading(false);
-        }
-      };
-      fetchRelatedProducts();
+  // Function to fetch related products
+  const fetchRelatedProducts = useCallback(async (category: string, marketId: string) => {
+    if (!category || !marketId) return;
+    
+    setIsRelatedLoading(true);
+    setRelatedError(null);
+    
+    console.log(`[PDP] Fetching related products for category: ${category}, market: ${marketId}`);
+    
+    try {
+      const response = await typedBrain.get<ProductsResponse>(`/api/products?category=${encodeURIComponent(category)}&market=${encodeURIComponent(marketId)}`);
+      
+      if (response?.data) {
+        const products = Array.isArray(response.data) ? response.data : response.data.products || [];
+        
+        // Filter out the current product and limit to 4 items
+        const filteredProducts = products
+          .filter((p) => p.code && p.code !== sku)
+          .slice(0, 4);
+        
+        console.log(`[PDP] Found ${filteredProducts.length} related products`);
+        setRelatedProducts(filteredProducts);
+      }
+    } catch (err: any) {
+      const errorMsg = err.name === 'AbortError'
+        ? 'Related products request timed out.'
+        : err.message || 'Failed to load related products.';
+      
+      console.error('[PDP] Error fetching related products:', err);
+      setRelatedError(errorMsg);
+    } finally {
+      setIsRelatedLoading(false);
     }
-  }, [product, market]); // Trigger when product or market changes
+  }, [sku]);
+
+  // Fetch related products when the product or market changes
+  useEffect(() => {
+    if (!product?.id || !market) return;
+    
+    let isMounted = true;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+
+    // Add a small delay to prevent rapid successive requests
+    const delayTimer = setTimeout(() => {
+      // Use the product's category if available, otherwise don't fetch related products
+      if (product?.category && market) {
+        fetchRelatedProducts(product.category, market);
+      } else {
+        console.log('[PDP] No category available for related products');
+        setRelatedProducts([]);
+      }
+    }, 300);
+    
+    return () => {
+      isMounted = false;
+      controller.abort();
+      clearTimeout(timeoutId);
+      clearTimeout(delayTimer);
+    };
+  }, [product?.id, product?.category, market, fetchRelatedProducts]);
 
   // DEBUG: Listen for Commerce Layer cart updates
   // useEffect(() => {
@@ -227,8 +347,9 @@ const ProductDetailPage: React.FC = () => {
                  <p className="text-sm text-muted-foreground mb-4">SKU: {product.sku}</p>
                  
                  <div className="flex items-center mb-4">
-                    <span className="text-2xl font-semibold mr-4">{product.price?.formatted || "Price unavailable"}</span>
-                     {product.available ? (
+                    <div className="text-3xl font-bold">
+            {product.pricing?.formatted || 'Price not available'}
+          </div>           {product.available ? (
                          <Badge variant="default" className="bg-green-500 hover:bg-green-600 text-white">In Stock</Badge>
                      ) : (
                          <Badge variant="destructive">Out of Stock</Badge>
@@ -240,14 +361,31 @@ const ProductDetailPage: React.FC = () => {
                  </div>
                  
                  {/* Commerce Layer Add to Cart Component - Render only when script and config are ready and product is available */}
-                 {product.sku && product.available && configReady && clScriptReady && (
-                    <cl-add-to-cart code={product.sku} data-cart>
-                        {/* Default/fallback content while component loads */}
-                        Add to Cart
-                    </cl-add-to-cart>
-                 )}
-                 {!product.available && (
-                     <Button size="lg" className="w-full" disabled>Out of Stock</Button>
+                 {product.sku && product.available && configReady && (
+                    <div>
+                      {product.available ? (
+            <Button className="w-full py-6 text-lg">
+              Add to Cart
+              <ShoppingCart className="ml-2 h-5 w-5" />
+            </Button>
+          ) : (
+            <Button variant="outline" className="w-full py-6 text-lg" disabled>
+              Out of Stock
+            </Button>
+          )}
+          
+          {product.available && (
+            <Button variant="outline" className="w-full py-6 text-lg">
+              Buy Now
+            </Button>
+          )}
+          
+          {!product.available && (
+            <Button variant="outline" className="w-full py-6 text-lg">
+              Notify Me When Available
+            </Button>
+          )}
+                    </div>
                  )}
                  {/* Informational text */}
                  <p className="text-xs text-muted-foreground mt-2">
@@ -285,7 +423,9 @@ const ProductDetailPage: React.FC = () => {
                  className="block focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 rounded-lg"
                  aria-label={`View details for ${relatedProduct.name}`}
                >
-                 <ProductItemCard product={relatedProduct} />
+                 <ProductItemCard 
+                   product={relatedProduct} 
+                 />
                </Link>
              ))}
            </div>

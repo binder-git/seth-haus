@@ -14,23 +14,63 @@ export interface ProductPricing {
   formatted: string;
 }
 
-export interface Product {
+// Base product interface
+interface BaseProduct {
   id: string;
   code: string;
   name: string;
   description: string;
-  image: string;
-  image_url?: string;
+  price: number;
+  currency: string;
+  imageUrl: string;
   category: Category;
   brand: ProductBrand;
-  available?: boolean;
-  featured?: boolean;
-  new?: boolean;
-  bestSeller?: boolean;
+  sku: string;
+  inStock: boolean;
   rating?: number;
+  reviewCount?: number;
+  tags?: string[];
+  variants?: ProductVariant[];
+  featured?: boolean;
+  onSale?: boolean;
+  bestSeller?: boolean;
   colors?: string[];
   sizes?: string[];
   pricing: ProductPricing;
+}
+
+export interface Product extends BaseProduct {
+  // Additional properties specific to the base product
+}
+
+export interface ProductResponse {
+  data: Product[];
+  meta?: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+}
+
+export interface ProductDetailResponse {
+  data: Product & {
+    // Additional properties for detailed product view
+    longDescription?: string;
+    specifications?: Record<string, string>;
+    images?: string[];
+    relatedProducts?: BaseProduct[];
+  };
+  included?: any[]; // For included relationships if using JSON:API
+}
+
+export interface ProductVariant {
+  id: string;
+  name: string;
+  sku: string;
+  price: number;
+  inStock: boolean;
+  attributes: Record<string, string>; // e.g., { size: 'M', color: 'Red' }
 }
 
 // Helper functions

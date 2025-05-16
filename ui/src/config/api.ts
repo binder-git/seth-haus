@@ -5,7 +5,7 @@ export const API = {
   
   // API endpoints
   endpoints: {
-    base: import.meta.env.VITE_API_URL || 'http://localhost:3000',
+    base: import.meta.env.API_URL || 'http://localhost:3000',
   },
 
   // WebSocket configuration (if needed in future)

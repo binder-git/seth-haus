@@ -1,6 +1,5 @@
 import React from "react";
 import { ChevronDown } from "lucide-react"; // Import chevron icon
-import { useMarketStore } from "../utils/market-store"; // Import store
 import { Market, MarketName } from '@/types';
 
 import {
@@ -11,17 +10,37 @@ import {
 } from "@/extensions/shadcn/components/dropdown-menu";
 import { Button } from "@/extensions/shadcn/components/button";
 
-export const MarketSwitcher = ({ className = "" }: { className?: string }) => {
-  const { market = { name: 'UK', region: 'uk', id: 'uk-market', countryCode: 'GB', currencyCode: 'GBP' }, setMarket } = useMarketStore();
+interface MarketSwitcherProps {
+  className?: string;
+  selectedMarket: Market;
+  onMarketChange: (market: Market) => void;
+}
 
+export const MarketSwitcher = ({ 
+  className = "",
+  selectedMarket,
+  onMarketChange 
+}: MarketSwitcherProps) => {
   const handleMarketChange = (marketName: MarketName) => {
     const newMarket: Market = marketName === 'UK' 
-      ? { name: 'UK', region: 'uk', id: process.env.VITE_COMMERCE_LAYER_MARKET_ID_UK || '', countryCode: 'GB', currencyCode: 'GBP' }
-      : { name: 'EU', region: 'eu', id: process.env.VITE_COMMERCE_LAYER_MARKET_ID_EU || '', countryCode: 'EU', currencyCode: 'EUR' };
-    setMarket(newMarket);
+      ? { 
+          name: 'UK', 
+          region: 'uk', 
+          id: import.meta.env.COMMERCE_LAYER_MARKET_ID_UK || 'market:vjzmJhvEDo', 
+          countryCode: 'GB', 
+          currencyCode: 'GBP' 
+        }
+      : { 
+          name: 'EU', 
+          region: 'eu', 
+          id: import.meta.env.COMMERCE_LAYER_MARKET_ID_EU || 'market:qjANwhQrJg', 
+          countryCode: 'EU', 
+          currencyCode: 'EUR' 
+        };
+    onMarketChange(newMarket);
   };
 
-  const displayMarket = market.name === "UK" ? "🇬🇧 UK (£)" : "🇪🇺 EU (€)";
+  const displayMarket = selectedMarket.name === "UK" ? "🇬🇧 UK (£)" : "🇪🇺 EU (€)";
 
   return (
     <DropdownMenu>
@@ -35,13 +54,13 @@ export const MarketSwitcher = ({ className = "" }: { className?: string }) => {
       <DropdownMenuContent align="end">
         <DropdownMenuItem 
           onClick={() => handleMarketChange("UK")} 
-          disabled={market.name === "UK"}
+          disabled={selectedMarket.name === "UK"}
         >
           🇬🇧 UK (GBP £)
         </DropdownMenuItem>
         <DropdownMenuItem 
           onClick={() => handleMarketChange("EU")} 
-          disabled={market.name === "EU"}
+          disabled={selectedMarket.name === "EU"}
         >
           🇪🇺 EU (EUR €)
         </DropdownMenuItem>

@@ -1,0 +1,15 @@
+export declare const APP_NAME = "Seth's Triathlon Haus";
+export declare const APP_DESCRIPTION = "Premium triathlon gear and accessories";
+export declare const APP_KEYWORDS: string[];
+export declare const APP_ID = "seth-haus";
+export declare const APP_BASE_PATH = "/";
+export declare const API_URL: string;
+export declare const API_PATH = "/api";
+export declare const WS_API_URL: string;
+export declare const CL_CLIENT_ID: string;
+export declare const CL_ENDPOINT: string;
+export declare const CL_ORGANIZATION: string;
+export type Mode = 'development' | 'production' | 'test';
+export declare const mode: Mode;
+export declare const DEFAULT_THEME: "system";
+export declare const AVAILABLE_THEMES: readonly ["light", "dark", "system"];

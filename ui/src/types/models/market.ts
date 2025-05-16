@@ -10,3 +10,8 @@ export interface MarketConfig {
 }
 
 export type Market = MarketConfig;
+
+export interface Markets {
+  eu: Market;
+  uk: Market;
+}

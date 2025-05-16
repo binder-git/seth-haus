@@ -6,10 +6,22 @@ import { CommerceLayerProvider, useCommerceLayer } from '../CommerceLayerContext
 
 // Mock environment variables
 const mockEnv = {
-  VITE_COMMERCE_LAYER_CLIENT_ID: 'test_client_id',
-  VITE_COMMERCE_LAYER_ORGANIZATION: 'test_org',
-  VITE_COMMERCE_LAYER_MARKET_ID_EU: 'market:id:qjANwhQrJg',
-  VITE_COMMERCE_LAYER_MARKET_ID_UK: 'market:id:vjzmJhvEDo'
+  // Commerce Layer
+  COMMERCE_LAYER_CLIENT_ID: 'test_client_id',
+  COMMERCE_LAYER_ORGANIZATION: 'test_org',
+  COMMERCE_LAYER_MARKET_ID_EU: 'market:id:qjANwhQrJg',
+  COMMERCE_LAYER_MARKET_ID_UK: 'market:id:vjzmJhvEDo',
+  COMMERCE_LAYER_DOMAIN: 'test-org.commercelayer.io',
+  COMMERCE_LAYER_EU_SCOPE: 'market:qjANwhQrJg',
+  COMMERCE_LAYER_UK_SCOPE: 'market:vjzmJhvEDo',
+  COMMERCE_LAYER_EU_SKU_LIST_ID: 'test_eu_sku_list',
+  COMMERCE_LAYER_UK_SKU_LIST_ID: 'test_uk_sku_list',
+  // App
+  APP_TITLE: 'Test App',
+  APP_ID: 'test-app',
+  // API
+  API_URL: 'http://localhost:3000',
+  WS_API_URL: 'ws://localhost:3000'
 };
 
 // Mock Commerce Layer SDK
@@ -32,6 +44,9 @@ global.process = mockProcess;
 (global as any).import = {
   meta: {
     env: mockEnv,
+    MODE: 'test',
+    DEV: true,
+    PROD: false
   }
 };
 
@@ -91,17 +106,25 @@ describe('CommerceLayerContext', () => {
   });
 
   test('Environment Configuration', () => {
-    const requiredKeys = [
-      'VITE_COMMERCE_LAYER_CLIENT_ID',
-      'VITE_COMMERCE_LAYER_ORGANIZATION',
-      'VITE_COMMERCE_LAYER_MARKET_ID_EU',
-      'VITE_COMMERCE_LAYER_MARKET_ID_UK'
+    const requiredVars = [
+      'COMMERCE_LAYER_CLIENT_ID',
+      'COMMERCE_LAYER_ORGANIZATION',
+      'COMMERCE_LAYER_MARKET_ID_EU',
+      'COMMERCE_LAYER_MARKET_ID_UK',
+      'COMMERCE_LAYER_DOMAIN',
+      'COMMERCE_LAYER_EU_SCOPE',
+      'COMMERCE_LAYER_UK_SCOPE',
+      'COMMERCE_LAYER_EU_SKU_LIST_ID',
+      'COMMERCE_LAYER_UK_SKU_LIST_ID',
+      'APP_TITLE',
+      'APP_ID',
+      'API_URL',
+      'WS_API_URL'
     ];
 
-    // Validate environment variables
-    requiredKeys.forEach(key => {
-      expect(mockEnv).toHaveProperty(key);
-      expect(mockEnv[key as keyof typeof mockEnv]).toBeTruthy();
+    requiredVars.forEach(varName => {
+      expect(mockEnv[varName as keyof typeof mockEnv]).toBeDefined();
+      expect(mockEnv[varName as keyof typeof mockEnv]).not.toBe('');
     });
   });
 });

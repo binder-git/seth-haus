@@ -2,13 +2,14 @@ import React, { createContext, useContext, useState, useCallback, FC } from 'rea
 import CommerceLayerAuthService from '../services/commerce-layer-auth-service';
 import CommerceLayer from '@commercelayer/sdk';
 import { z } from 'zod';
+import type { Market, MarketName, MarketRegion, Markets } from 'types';
 
 // Environment Variable Validation Schema
 const CommerceLayerEnvSchema = z.object({
-  VITE_COMMERCE_LAYER_CLIENT_ID: z.string().min(1, 'Commerce Layer Client ID is required'),
-  VITE_COMMERCE_LAYER_ORGANIZATION: z.string().min(1, 'Commerce Layer Organization is required'),
-  VITE_COMMERCE_LAYER_MARKET_ID_EU: z.string().min(1, 'EU Market ID is required'),
-  VITE_COMMERCE_LAYER_MARKET_ID_UK: z.string().min(1, 'UK Market ID is required')
+  COMMERCE_LAYER_CLIENT_ID: z.string().min(1, 'Commerce Layer Client ID is required'),
+  COMMERCE_LAYER_ORGANIZATION: z.string().min(1, 'Commerce Layer Organization is required'),
+  COMMERCE_LAYER_MARKET_ID_EU: z.string().min(1, 'EU Market ID is required'),
+  COMMERCE_LAYER_MARKET_ID_UK: z.string().min(1, 'UK Market ID is required')
 });
 
 // Add type declarations to resolve lint errors
@@ -26,23 +27,15 @@ declare global {
 
 type CommerceLayerClient = ReturnType<typeof CommerceLayer>;
 
-interface Market {
-  id: string;
-  name: string;
-  region: 'eu' | 'uk';
-}
-
-type Markets = {
-  [key in 'eu' | 'uk']: Market;
-}
+// Markets type is imported from types
 
 // Validate environment variables
 const validateEnvVariables = (env?: unknown): Record<string, string> => {
   const requiredKeys = [
-    'VITE_COMMERCE_LAYER_CLIENT_ID',
-    'VITE_COMMERCE_LAYER_ORGANIZATION',
-    'VITE_COMMERCE_LAYER_MARKET_ID_EU',
-    'VITE_COMMERCE_LAYER_MARKET_ID_UK'
+    'COMMERCE_LAYER_CLIENT_ID',
+    'COMMERCE_LAYER_ORGANIZATION',
+    'COMMERCE_LAYER_MARKET_ID_EU',
+    'COMMERCE_LAYER_MARKET_ID_UK'
   ];
 
   const isValidEnv = (vars: unknown): vars is Record<string, string> => {
@@ -109,14 +102,14 @@ interface CommerceLayerContextType {
 
 // Environment configuration
 const ENV: Record<string, string> = {
-  COMMERCE_LAYER_CLIENT_ID: import.meta.env.VITE_COMMERCE_LAYER_CLIENT_ID,
-  COMMERCE_LAYER_CLIENT_SECRET: import.meta.env.VITE_COMMERCE_LAYER_CLIENT_SECRET,
-  COMMERCE_LAYER_ORGANIZATION: import.meta.env.VITE_COMMERCE_LAYER_ORGANIZATION,
-  COMMERCE_LAYER_DOMAIN: import.meta.env.VITE_COMMERCE_LAYER_DOMAIN || 'commercelayer.io',
-  COMMERCE_LAYER_EU_SCOPE: import.meta.env.VITE_COMMERCE_LAYER_EU_SCOPE,
-  COMMERCE_LAYER_UK_SCOPE: import.meta.env.VITE_COMMERCE_LAYER_UK_SCOPE,
-  COMMERCE_LAYER_EU_SKU_LIST_ID: import.meta.env.VITE_COMMERCE_LAYER_EU_SKU_LIST_ID,
-  COMMERCE_LAYER_UK_SKU_LIST_ID: import.meta.env.VITE_COMMERCE_LAYER_UK_SKU_LIST_ID,
+  COMMERCE_LAYER_CLIENT_ID: import.meta.env.COMMERCE_LAYER_CLIENT_ID || '',
+  COMMERCE_LAYER_CLIENT_SECRET: import.meta.env.COMMERCE_LAYER_CLIENT_SECRET || '',
+  COMMERCE_LAYER_ORGANIZATION: import.meta.env.COMMERCE_LAYER_ORGANIZATION || '',
+  COMMERCE_LAYER_DOMAIN: import.meta.env.COMMERCE_LAYER_DOMAIN || 'commercelayer.io',
+  COMMERCE_LAYER_EU_SCOPE: import.meta.env.COMMERCE_LAYER_EU_SCOPE || 'market:qjANwhQrJg',
+  COMMERCE_LAYER_UK_SCOPE: import.meta.env.COMMERCE_LAYER_UK_SCOPE || 'market:vjzmJhvEDo',
+  COMMERCE_LAYER_EU_SKU_LIST_ID: import.meta.env.COMMERCE_LAYER_EU_SKU_LIST_ID || 'JjEpIvwjey',
+  COMMERCE_LAYER_UK_SKU_LIST_ID: import.meta.env.COMMERCE_LAYER_UK_SKU_LIST_ID || 'nVvZIAKxGn',
 };
 
 // Validate environment variables
@@ -137,8 +130,8 @@ requiredVars.forEach(varName => {
 
 // Helper function to get environment variables
 const getEnvVar = (key: string): string => {
-  const envKey = key.replace('VITE_', '').toUpperCase();
-  const fullKey = `COMMERCE_LAYER_${envKey}`;
+  // Directly use the key as we're using non-prefixed environment variables
+  const fullKey = `COMMERCE_LAYER_${key}`;
   return import.meta.env[key] || ENV[fullKey] || '';
 };
 
@@ -147,34 +140,29 @@ export const CommerceLayerContext = createContext<CommerceLayerContextType>({
     organization: ENV.COMMERCE_LAYER_ORGANIZATION,
     accessToken: 'test_token'
   }),
-  currentMarket: { id: ENV.COMMERCE_LAYER_EU_SCOPE, name: 'EU Market', region: 'eu' },
+  currentMarket: { id: ENV.COMMERCE_LAYER_EU_SCOPE, name: 'EU' as const, region: 'eu' as const },
   markets: {
-    eu: { id: ENV.COMMERCE_LAYER_EU_SCOPE, name: 'EU Market', region: 'eu' },
-    uk: { id: ENV.COMMERCE_LAYER_UK_SCOPE, name: 'UK Market', region: 'uk' }
+    eu: { id: ENV.COMMERCE_LAYER_EU_SCOPE, name: 'EU' as const, region: 'eu' as const },
+    uk: { id: ENV.COMMERCE_LAYER_UK_SCOPE, name: 'UK' as const, region: 'uk' as const }
   },
   switchMarket: () => {}
 });
 
 export const CommerceLayerProvider: FC<{ children: React.ReactNode }> = ({ children }) => {
   // Validate and extract environment variables
-  const { 
-    VITE_COMMERCE_LAYER_CLIENT_ID: clientId, 
-    VITE_COMMERCE_LAYER_ORGANIZATION: organization,
-    VITE_COMMERCE_LAYER_MARKET_ID_EU: marketIdEu,
-    VITE_COMMERCE_LAYER_MARKET_ID_UK: marketIdUk
-  } = validateEnvVariables(import.meta.env);
+  const envVars = validateEnvVariables(import.meta.env);
 
   // Configure markets
   const markets: Markets = {
     eu: {
-      id: marketIdEu,
-      name: 'European Market',
-      region: 'eu'
+      id: envVars.COMMERCE_LAYER_MARKET_ID_EU,
+      name: 'EU' as const,
+      region: 'eu' as const
     },
     uk: {
-      id: marketIdUk,
-      name: 'United Kingdom Market',
-      region: 'uk'
+      id: envVars.COMMERCE_LAYER_MARKET_ID_UK,
+      name: 'UK' as const,
+      region: 'uk' as const
     }
   };
   const [currentMarket, setCurrentMarket] = useState<Market>(markets.eu);

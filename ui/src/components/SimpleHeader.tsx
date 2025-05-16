@@ -1,13 +1,17 @@
 import React from "react"; 
 import { Link, useNavigate } from "react-router-dom";
-// Removed ShoppingCart from lucide-react as we'll use the provided SVG
-import { MarketSwitcher } from "./MarketSwitcher"; // Correct component
-// Removed Button as cl-cart-link will handle the click
-import { useAppContext } from "./AppProvider"; // Import context hook
+import { MarketSwitcher } from "./MarketSwitcher";
+import { useAppContext } from "./AppProvider";
+import { Market } from "@/types";
 
-export default function SimpleHeader() {
+interface SimpleHeaderProps {
+  selectedMarket: Market;
+  onMarketChange: (market: Market) => void;
+}
+
+export default function SimpleHeader({ selectedMarket, onMarketChange }: SimpleHeaderProps) {
   const navigate = useNavigate();
-  const { clReady } = useAppContext(); // Get clReady state from context
+  const { clReady } = useAppContext();
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -46,7 +50,7 @@ export default function SimpleHeader() {
         </nav>
 
         <div className="flex items-center space-x-4">
-          <MarketSwitcher />
+          <MarketSwitcher selectedMarket={selectedMarket} onMarketChange={onMarketChange} />
 
           {clReady && (
             <div className="relative ml-4 flex items-center">

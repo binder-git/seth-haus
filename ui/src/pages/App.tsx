@@ -1,15 +1,17 @@
 import React from "react";
-import { useMarketStore } from "utils/market-store"; // Import the global store
-import { TriHero } from "components/TriHero";
-import { Categories } from "components/Categories";
+import { useMarketStore } from "utils/market-store";
 import { Market } from '@/types';
-import FeaturedProducts from "components/FeaturedProducts";
-import { ShippingInfo } from "components/ShippingInfo";
 import { CommerceLayerProvider } from "@/contexts/CommerceLayerContext";
+import { Outlet } from "react-router-dom";
+
+// Create a type for the context
+export type AppContextType = {
+  selectedMarket: Market;
+};
 
 export default function App() {
   // Use the global market store
-  const { market, setMarket } = useMarketStore();
+  const { market } = useMarketStore();
 
   // Ensure market is always defined
   const selectedMarket = market || {
@@ -20,19 +22,10 @@ export default function App() {
     currencyCode: 'GBP'
   };
 
+  // Pass the selectedMarket to all child routes
   return (
     <CommerceLayerProvider>
-      {/* <SimpleHeader /> No longer needed, AppProvider handles Header */}
-      <main className="flex-grow">
-        {/* Previous comment: Pass selectedMarket from global store, remove onMarketChange */}
-        <section>
-          <TriHero />
-          <Categories />
-          <FeaturedProducts selectedMarket={selectedMarket} />
-          <ShippingInfo selectedMarket={selectedMarket} />
-        </section>
-      </main>
-      {/* <SimpleFooter /> No longer needed, AppProvider handles Footer */}
+      <Outlet context={{ selectedMarket }} />
     </CommerceLayerProvider>
   );
 }
