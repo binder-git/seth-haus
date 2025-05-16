@@ -4,6 +4,7 @@
   "description": "Netlify Functions for Commerce Layer Authentication",
   "main": "index.js",
   "dependencies": {
+    "@commercelayer/sdk": "^6.41.0",
     "axios": "^1.4.0"
   },
   "devDependencies": {
@@ -13,5 +14,9 @@
   },
   "scripts": {
     "build": "tsc"
-  }
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
 }

@@ -1,13 +1,13 @@
 import { 
   getCommerceLayerProducts, 
-  clearProductCache, 
   extractCategories, 
   extractProductAttributes, 
-  getProductAttribute 
+  getProductAttribute,
+  clearProductCache,
+  productCache
 } from '../commerce-layer-service';
 import { Brain } from '../../brain/Brain';
-import { Market } from '../types';
-import { clearProductCache, productCache } from '../commerce-layer-service';
+import { Market, MarketName } from '@/types';
 import { GetCommerceLayerProductsParams, ProductResponse, ProductAttribute, ProductPrice } from '../../brain/data-contracts';
 
 
@@ -78,7 +78,7 @@ describe('Commerce Layer Service', () => {
         data: { products: mockProducts }
       });
 
-      const products = await getCommerceLayerProducts('EU' as Market);
+      const products = await getCommerceLayerProducts({ name: 'EU', region: 'eu', id: 'eu-market', countryCode: 'EU', currencyCode: 'EUR' });
       
       expect(products).toEqual(mockProducts);
       expect(mockBrainInstance.get_commerce_layer_products).toHaveBeenCalledWith({ market: 'EU' });
@@ -88,7 +88,7 @@ describe('Commerce Layer Service', () => {
       // Simulate Commerce Layer API failure
       mockBrainInstance.get_commerce_layer_products.mockRejectedValue(new Error('API Error'));
 
-      const products = await getCommerceLayerProducts('UK' as Market);
+      const products = await getCommerceLayerProducts({ name: 'UK', region: 'uk', id: 'uk-market', countryCode: 'GB', currencyCode: 'GBP' });
       
       expect(products).toEqual([]);
     });
@@ -106,11 +106,11 @@ describe('Commerce Layer Service', () => {
         data: { products: mockProducts }
       });
 
-      await getCommerceLayerProducts('EU' as Market);
+      await getCommerceLayerProducts({ name: 'EU', region: 'eu', id: 'eu-market', countryCode: 'EU', currencyCode: 'EUR' });
       expect(productCache['EU']).toEqual(mockProducts);
 
       // Clear cache for specific market
-      clearProductCache('EU');
+      clearProductCache({ name: 'EU', region: 'eu', id: 'eu-market', countryCode: 'EU', currencyCode: 'EUR' });
       expect(productCache['EU']).toBeUndefined();
     });
 
@@ -120,8 +120,8 @@ describe('Commerce Layer Service', () => {
         data: { products: mockProducts }
       });
 
-      await getCommerceLayerProducts('EU' as Market);
-      await getCommerceLayerProducts('UK' as Market);
+      await getCommerceLayerProducts({ name: 'EU', region: 'eu', id: 'eu-market', countryCode: 'EU', currencyCode: 'EUR' });
+      await getCommerceLayerProducts({ name: 'UK', region: 'uk', id: 'uk-market', countryCode: 'GB', currencyCode: 'GBP' });
 
       expect(productCache['EU']).toEqual(mockProducts);
       expect(productCache['UK']).toEqual(mockProducts);

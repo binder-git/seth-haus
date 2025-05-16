@@ -17,7 +17,15 @@ import {
 } from "./data-contracts";
 import { ContentType, HttpClient, RequestParams } from "./http-client";
 
+import { API } from '@/config';
+
 export class Brain<SecurityDataType = unknown> extends HttpClient<SecurityDataType> {
+  constructor(config?: { baseUrl?: string; baseApiParams?: RequestParams }) {
+    super({
+      baseUrl: config?.baseUrl || API.baseUrl,
+      baseApiParams: { ...config?.baseApiParams, secure: true }
+    });
+  }
   /**
    * @description Check health of application. Returns 200 when OK, 500 when not.
    *
@@ -73,13 +81,17 @@ export class Brain<SecurityDataType = unknown> extends HttpClient<SecurityDataTy
    * @summary Get Featured Products
    * @request GET:/routes/commerce-layer/featured-products
    */
-  get_featured_products = (query: GetFeaturedProductsParams, params: RequestParams = {}) =>
-    this.request<GetFeaturedProductsData, GetFeaturedProductsError>({
+  get_featured_products = async (query: GetFeaturedProductsParams, params: RequestParams = {}) => {
+    const response = await this.request<GetFeaturedProductsData, GetFeaturedProductsError>({
       path: `/routes/commerce-layer/featured-products`,
       method: "GET",
       query: query,
+      format: "json",
       ...params,
     });
+
+    return response;
+  };
 
   /**
    * @description Fetches detailed information for a single product SKU using a single API call.

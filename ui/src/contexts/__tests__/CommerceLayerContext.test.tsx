@@ -1,6 +1,6 @@
 import React from 'react';
 import { renderHook, waitFor } from '@testing-library/react';
-import { act } from 'react';
+import { act } from '@testing-library/react';
 import * as CommerceLayerSDK from '@commercelayer/sdk';
 import { CommerceLayerProvider, useCommerceLayer } from '../CommerceLayerContext';
 
@@ -21,50 +21,23 @@ jest.mock('@commercelayer/sdk', () => ({
   }))
 }));
 
-// Declare a more precise ImportMetaEnv type
-interface ImportMetaEnv {
-  readonly VITE_COMMERCE_LAYER_CLIENT_ID: string;
-  readonly VITE_COMMERCE_LAYER_ORGANIZATION: string;
-  readonly VITE_COMMERCE_LAYER_MARKET_ID_EU: string;
-  readonly VITE_COMMERCE_LAYER_MARKET_ID_UK: string;
-}
-
-// Extend global interface to allow import and its properties
-declare global {
-  interface ImportMeta {
-    readonly env: ImportMetaEnv;
-    readonly url: string;
-    resolve(path: string): string;
-    glob(pattern: string): Promise<string[]>;
-  }
-
-  interface Global {
-    import: {
-      meta: ImportMeta;
-    };
-  }
-}
-
-// Explicitly mock global environment
+// Mock environment variables for Vite
 const mockProcess = {
   env: mockEnv
 } as unknown as NodeJS.Process;
 
 global.process = mockProcess;
 
-// Explicitly mock import object
-global.import = {
+// Mock import.meta for Vite
+(global as any).import = {
   meta: {
-    env: mockEnv as ImportMetaEnv,
-    url: 'mock://url',
-    resolve: () => 'mock://resolved',
-    glob: async () => ['mock://file']
+    env: mockEnv,
   }
-} as Global['import'];
+};
 
 describe('CommerceLayerContext', () => {
-  const mockEuMarket = { id: 'market:id:qjANwhQrJg', name: 'EU Market', region: 'eu' as const };
-  const mockUkMarket = { id: 'market:id:vjzmJhvEDo', name: 'UK Market', region: 'uk' as const };
+  const mockEuMarket = { id: 'market:id:qjANwhQrJg', name: 'EU', region: 'eu' as const, countryCode: 'EU', currencyCode: 'EUR' };
+  const mockUkMarket = { id: 'market:id:vjzmJhvEDo', name: 'UK', region: 'uk' as const, countryCode: 'GB', currencyCode: 'GBP' };
 
   // Mock Commerce Layer SDK
   const mockCommerceLayerSDK = {
@@ -128,7 +101,7 @@ describe('CommerceLayerContext', () => {
     // Validate environment variables
     requiredKeys.forEach(key => {
       expect(mockEnv).toHaveProperty(key);
-      expect(mockEnv[key]).toBeTruthy();
+      expect(mockEnv[key as keyof typeof mockEnv]).toBeTruthy();
     });
   });
 });

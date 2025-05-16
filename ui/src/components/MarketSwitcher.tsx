@@ -1,7 +1,7 @@
 import React from "react";
 import { ChevronDown } from "lucide-react"; // Import chevron icon
 import { useMarketStore } from "../utils/market-store"; // Import store
-import { Market } from "@/utils/types";
+import { Market, MarketName } from '@/types';
 
 import {
   DropdownMenu,
@@ -12,13 +12,16 @@ import {
 import { Button } from "@/extensions/shadcn/components/button";
 
 export const MarketSwitcher = ({ className = "" }: { className?: string }) => {
-  const { market = { name: 'UK', id: 'uk-market', countryCode: 'GB', currencyCode: 'GBP' }, setMarket } = useMarketStore();
+  const { market = { name: 'UK', region: 'uk', id: 'uk-market', countryCode: 'GB', currencyCode: 'GBP' }, setMarket } = useMarketStore();
 
-  const handleMarketChange = (newMarket: Market) => {
+  const handleMarketChange = (marketName: MarketName) => {
+    const newMarket: Market = marketName === 'UK' 
+      ? { name: 'UK', region: 'uk', id: process.env.VITE_COMMERCE_LAYER_MARKET_ID_UK || '', countryCode: 'GB', currencyCode: 'GBP' }
+      : { name: 'EU', region: 'eu', id: process.env.VITE_COMMERCE_LAYER_MARKET_ID_EU || '', countryCode: 'EU', currencyCode: 'EUR' };
     setMarket(newMarket);
   };
 
-  const displayMarket = (typeof market === 'string' ? market : market.name) === "UK" ? "🇬🇧 UK (£)" : "🇪🇺 EU (€)";
+  const displayMarket = market.name === "UK" ? "🇬🇧 UK (£)" : "🇪🇺 EU (€)";
 
   return (
     <DropdownMenu>
@@ -32,13 +35,13 @@ export const MarketSwitcher = ({ className = "" }: { className?: string }) => {
       <DropdownMenuContent align="end">
         <DropdownMenuItem 
           onClick={() => handleMarketChange("UK")} 
-          disabled={(typeof market === 'string' ? market : market.name) === "UK"}
+          disabled={market.name === "UK"}
         >
           🇬🇧 UK (GBP £)
         </DropdownMenuItem>
         <DropdownMenuItem 
           onClick={() => handleMarketChange("EU")} 
-          disabled={(typeof market === 'string' ? market : market.name) === "EU"}
+          disabled={market.name === "EU"}
         >
           🇪🇺 EU (EUR €)
         </DropdownMenuItem>

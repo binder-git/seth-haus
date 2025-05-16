@@ -61,7 +61,7 @@ const ProductDetailPage: React.FC = () => {
           if (response.status === 404) {
             throw new Error(`Product with SKU '${sku}' was not found in the ${market} market.`);
           } else {
-            throw new Error(errorData?.detail || `Failed to fetch product details (Status: ${response.status})`);
+            throw new Error(`Failed to fetch product details (Status: ${response.status})`);
           }
         }
 
@@ -92,7 +92,7 @@ const ProductDetailPage: React.FC = () => {
           const response = await brain.get_commerce_layer_products({ market: market });
           if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData?.detail || "Failed to fetch related products");
+            throw new Error("Failed to fetch related products");
           }
           const data = await response.json();
           // Filter out the current product and limit to 4

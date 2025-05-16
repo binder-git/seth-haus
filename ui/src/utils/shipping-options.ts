@@ -1,4 +1,4 @@
-import { ShippingOption, Market } from "./types"; // Import types used by shippingOptions
+import { MarketName, ShippingOption } from '@/types'; // Import types used by shippingOptions
 
 export const shippingOptions: ShippingOption[] = [
   {

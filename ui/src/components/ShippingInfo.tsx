@@ -1,6 +1,7 @@
 import React from "react";
+import { ShippingOption } from '@/types';
 import { shippingOptions } from "utils/shipping-options";
-import { Market } from "utils/types";
+import { Market } from '@/types';
 
 interface ShippingInfoProps {
   selectedMarket: Market;
@@ -8,7 +9,7 @@ interface ShippingInfoProps {
 
 export const ShippingInfo = ({ selectedMarket }: ShippingInfoProps) => {
   const marketOptions = shippingOptions.filter(option => 
-    option.markets.includes(selectedMarket)
+    option.markets.includes(selectedMarket.name)
   );
   
   return (
@@ -16,7 +17,7 @@ export const ShippingInfo = ({ selectedMarket }: ShippingInfoProps) => {
       <div className="container mx-auto px-4">
         <h2 className="text-3xl font-bold mb-2">Shipping Options</h2>
         <p className="text-muted-foreground mb-8">
-          Available shipping methods for {selectedMarket === "UK" ? "United Kingdom" : "European Union"}
+          Available shipping methods for {selectedMarket.name === "UK" ? "United Kingdom" : "European Union"}
         </p>
         
         <div className="bg-white rounded-lg shadow-md overflow-hidden divide-y">
@@ -30,7 +31,7 @@ export const ShippingInfo = ({ selectedMarket }: ShippingInfoProps) => {
                 </div>
                 <div className="mt-3 sm:mt-0 sm:text-right">
                   <p className="text-lg font-bold">
-                    {selectedMarket === "UK" ? "£" : "€"}{option.price.toFixed(2)}
+                    {selectedMarket.name === "UK" ? "£" : "€"}{option.price.toFixed(2)}
                   </p>
                 </div>
               </div>
@@ -40,7 +41,7 @@ export const ShippingInfo = ({ selectedMarket }: ShippingInfoProps) => {
         
         <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
           <h4 className="font-semibold text-blue-800 mb-2">Shipping Policy</h4>
-          {selectedMarket === "UK" ? (
+          {selectedMarket.name === "UK" ? (
             <p className="text-sm text-blue-700">
               All orders are processed within 1-2 business days. Delivery times are estimated and not guaranteed. 
               Free shipping is available on orders over £85 for U.K. customers.

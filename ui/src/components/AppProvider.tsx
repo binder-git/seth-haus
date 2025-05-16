@@ -1,12 +1,11 @@
 import React, { createContext, useContext, useState, useEffect, useRef, useMemo } from "react";
 import { toast, Toaster } from "sonner";
 import { TooltipProvider } from "@/extensions/shadcn/components/tooltip";
-import SimpleHeader from "./SimpleHeader";
 import { SimpleFooter } from "./SimpleFooter";
-import { CLCoreConfigResponse, TokenResponse } from "@/types/data-contracts";
+import SimpleHeader from "./SimpleHeader";
+import { CLCoreConfigResponse, TokenResponse, Market } from "@/types";
 import { useMarketStore } from "@/utils/market-store";
-import { Market } from "@/utils/types";
-import { API_URL, APP_BASE_PATH, Mode } from "@/config/constants";
+import { API } from "@/config";
 
 // --- Context Definition ---
 export interface AppContextProps {
@@ -53,34 +52,28 @@ export const AppProvider = ({ children }: AppProviderProps): React.ReactElement 
   const [v2ConfigReady, setV2ConfigReady] = useState(false);
 
   const clScriptRef = useRef<HTMLScriptElement | null>(null);
-  const { market = { name: 'UK', id: 'uk-market', countryCode: 'GB', currencyCode: 'GBP' } } = useMarketStore();
+  const { market = { name: 'UK', region: 'uk', id: 'uk-market', countryCode: 'GB', currencyCode: 'GBP' } } = useMarketStore();
 
   // Check if we're in development mode
   const isDev = import.meta.env.MODE === 'development';
 
-  // Fetch core config
-  const fetchCoreConfig = async (): Promise<CLCoreConfigResponse> => {
-    try {
-      const response = await fetch(`${API_URL}/api/core-config`);
-      if (!response.ok) {
-        const error = await response.text();
-        throw new Error(error);
-      }
-      const data: CLCoreConfigResponse = await response.json();
-      if (isDev) {
-        console.log('[AppProvider] Core config:', data);
-      }
-      return data;
-    } catch (error) {
-      console.error('[AppProvider] Error fetching core config:', error);
-      throw error;
-    }
+  // Get core config from environment
+  const getCoreConfig = (): CLCoreConfigResponse => {
+    return {
+      clientId: import.meta.env.VITE_COMMERCE_LAYER_CLIENT_ID || '',
+      baseUrl: API.baseUrl,
+      marketIdMap: {
+        EU: API.markets.EU.scopeId,
+        UK: API.markets.UK.scopeId
+      },
+      organization: API.organization
+    };
   };
 
   // Initialize Commerce Layer
   const initCommerceLayer = async () => {
     try {
-      const coreConfig = await fetchCoreConfig();
+      const coreConfig = getCoreConfig();
       setClientId(coreConfig.clientId);
       setBaseUrl(coreConfig.baseUrl);
       setMarketIdMap(coreConfig.marketIdMap);

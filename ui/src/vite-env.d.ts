@@ -14,14 +14,3 @@ interface ImportMetaEnv {
 interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
-
-declare global {
-  namespace JSX {
-    interface IntrinsicElements {
-      "cl-cart-link": React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>;
-      // Add any other custom elements you use here, e.g., "cl-identity-link"
-      // Example:
-      // "cl-identity-link": React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>;
-    }
-  }
-}

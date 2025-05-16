@@ -8,7 +8,7 @@ import React, {
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useAppProducts, useProductStore } from "utils/product-store";
 import { useAppContext } from "components/AppProvider";
-import { Category, ProductBrand, Market, Product } from "utils/types";
+import { Product, Category, ProductBrand } from '@/types';
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Slider } from "@/components/ui/slider";
@@ -76,7 +76,7 @@ export default function Products() {
       if (product.brand) brds.add(product.brand);
       product.sizes?.forEach(size => szs.add(size));
       product.colors?.forEach(color => clrs.add(color));
-      const price = product.pricing[market]?.price;
+      const price = product.pricing.price;
       if (price !== undefined) {
         if (price < minP) minP = price;
         if (price > maxP) maxP = price;
@@ -117,11 +117,9 @@ export default function Products() {
       filtered = filtered.filter((p) => p.brand && selectedBrands.includes(p.brand));
     }
     filtered = filtered.filter((p) => {
-      const marketPriceData = p.pricing?.[market];
-      if (!marketPriceData || marketPriceData.price === undefined) return false;
-      return (
-        marketPriceData.price >= priceRange[0] && marketPriceData.price <= priceRange[1]
-      );
+      const price = p.pricing?.price;
+      if (price === undefined) return false;
+      return price >= priceRange[0] && price <= priceRange[1];
     });
     if (showNew) {
       filtered = filtered.filter((p) => p.new);
@@ -153,7 +151,7 @@ export default function Products() {
     selectedColors,
   ]);
 
-  const handleSizeToggle = useCallback((size: string) => {
+  const handleSizeFilter = useCallback((size: string) => {
     startTransition(() => {
       setSelectedSizes((prev) =>
         prev.includes(size) ? prev.filter((s) => s !== size) : [...prev, size]
@@ -161,7 +159,7 @@ export default function Products() {
     });
   }, [startTransition]);
 
-  const handleColorToggle = useCallback((color: string) => {
+  const handleColorFilter = useCallback((color: string) => {
     startTransition(() => {
       setSelectedColors((prev) =>
         prev.includes(color) ? prev.filter((c) => c !== color) : [...prev, color]
@@ -169,7 +167,7 @@ export default function Products() {
     });
   }, [startTransition]);
 
-  const handleBrandToggle = useCallback((brand: ProductBrand) => {
+  const handleBrandFilter = useCallback((brand: ProductBrand) => {
     startTransition(() => {
       setSelectedBrands((prev) =>
         prev.includes(brand) ? prev.filter((b) => b !== brand) : [...prev, brand]
@@ -242,7 +240,7 @@ export default function Products() {
 
 
 
-  const currencySymbol = market === "UK" ? "£" : "€";
+  const currencySymbol = market?.name === "UK" ? "£" : "€";
 
 
 
@@ -311,7 +309,7 @@ export default function Products() {
                       key={size}
                       variant={selectedSizes.includes(size) ? "secondary" : "outline"}
                       size="sm"
-                      onClick={() => handleSizeToggle(size)}
+                      onClick={() => handleSizeFilter(size)}
                       disabled={isPending || isLoading}
                     >
                       {size}
@@ -335,7 +333,7 @@ export default function Products() {
                         backgroundColor: color,
                         borderColor: selectedColors.includes(color) ? "hsl(var(--primary))" : color,
                       }}
-                      onClick={() => handleColorToggle(color)}
+                      onClick={() => handleColorFilter(color)}
                       disabled={isPending || isLoading}
                       aria-label={`Filter by color ${color}`}
                     />
@@ -374,9 +372,9 @@ export default function Products() {
                           {product.description}
                         </p>
                         <div className="flex justify-between items-center mt-4">
-                          {product.pricing[market]?.formatted ? (
+                          {product.pricing.formatted ? (
                             <p className="text-lg font-bold">
-                              {product.pricing[market]?.formatted}
+                              {product.pricing.formatted}
                             </p>
                           ) : (
                             <p className="text-lg font-bold text-muted-foreground">N/A</p>

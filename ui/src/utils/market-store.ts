@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Market } from '@/utils/types';
+import { Market } from '@/types';
 
 // Define the store state and actions
 interface MarketState {
@@ -9,6 +9,6 @@ interface MarketState {
 
 // Create the Zustand store
 export const useMarketStore = create<MarketState>((set) => ({
-  market: { name: 'UK' as const, id: 'uk-market', countryCode: 'GB', currencyCode: 'GBP' },
+  market: { name: 'UK' as const, region: 'uk' as const, id: 'uk-market', countryCode: 'GB', currencyCode: 'GBP' },
   setMarket: (market) => set({ market }),
 }));

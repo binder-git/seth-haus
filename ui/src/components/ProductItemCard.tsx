@@ -2,32 +2,13 @@ import React, { useState } from "react"; // Import useState
 // Removed: import { useCartStore } from "utils/cart-store";
 import { useMarketStore } from "utils/market-store";
 import { Button } from "@/components/ui/button";
-// Removed: import { toast } from "sonner"; // No longer needed for cart errors here
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge"; // Import Badge for availability
-import { ProductResponse as CommerceLayerProduct } from "../brain/data-contracts"; // Use correct type from generated client
 import { cn } from "utils/cn";
-
-// --- TypeScript Declaration for Custom Element ---
-declare global {
-  namespace JSX {
-    interface IntrinsicElements {
-      "cl-availability": React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
-        "sku-code"?: string;
-        // Add other cl-availability attributes if needed (e.g., for templates)
-      };
-      // Add cl-add-to-cart declaration if not already present globally
-      "commercelayer-add-to-cart": React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
-        "sku-code"?: string;
-        quantity?: string; // Or number, check CL docs
-      };
-    }
-  }
-}
-// --- End TypeScript Declaration ---
+import { ProductResponse } from "../brain/data-contracts";
 
 export interface Props {
-  product: CommerceLayerProduct;
+  product: ProductResponse;
   className?: string;
   onViewDetailsClick?: () => void; // Add the new prop, optional to maintain backward compatibility
 }
@@ -85,7 +66,7 @@ const ProductItemCardComponent = ({ product, className = "", onViewDetailsClick 
             {product.price?.formatted || "Price not available"}
           </p>
           {/* Display availability using Badge based on backend data */}
-          <Badge variant={product.available ? "success" : "destructive"}>
+          <Badge variant={product.available ? "default" : "destructive"}>
               {product.available ? "In Stock" : "Out of Stock"}
           </Badge>          
         </div>
@@ -109,8 +90,8 @@ const ProductItemCardComponent = ({ product, className = "", onViewDetailsClick 
 
             {/* Commerce Layer Add to Cart Component */}
           {product.code && product.available ? (
-            <commercelayer-add-to-cart sku-code={product.code} quantity="1">
-            </commercelayer-add-to-cart>
+            <cl-add-to-cart code={product.code} data-cart>
+            </cl-add-to-cart>
           ) : (
             <Button disabled className="w-full">
               Out of Stock

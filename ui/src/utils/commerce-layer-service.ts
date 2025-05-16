@@ -1,5 +1,5 @@
 import { Brain } from "../brain/Brain";
-import { Market } from "./types";
+import { Market, MarketName } from '@/types';
 import { ProductResponse, ProductPrice, ProductImage, ProductAttribute } from "../brain/data-contracts";
 
 // Alias for better readability
@@ -13,27 +13,28 @@ export interface ProductsResponse {
 }
 
 // Cache for products to avoid unnecessary requests
-export let productCache: { [key in Market]?: CommerceLayerProduct[] } = {};
+export let productCache: { [key in MarketName]?: CommerceLayerProduct[] } = {};
 
 // Function to get products from Commerce Layer or mock API fallback
 export const getCommerceLayerProducts = async (market: Market): Promise<CommerceLayerProduct[]> => {
+  const marketName = market.name;
   try {
     // Check if we have cached products for this market
-    if (productCache[market]) {
-      return productCache[market]!;
+    if (productCache[marketName]) {
+      return productCache[marketName]!;
     }
 
     // First try Commerce Layer API
     try {
       const brainInstance = new Brain();
       const response = await brainInstance.get_commerce_layer_products({
-        market
+        market: market.name
       });
 
       // Assuming the response has a 'data' property with 'products'
       const products = response.data.products;
       // Cache the products
-      productCache[market] = products;
+      productCache[marketName] = products;
       console.log(`Fetched ${products.length} products from Commerce Layer`);
       return products;
     } catch (e) {
@@ -50,8 +51,9 @@ export const getCommerceLayerProducts = async (market: Market): Promise<Commerce
 
 // Function to clear cache (useful when switching markets)
 export const clearProductCache = (market?: Market) => {
-  if (market) {
-    delete productCache[market];
+  const marketName = market?.name;
+  if (marketName) {
+    delete productCache[marketName];
   } else {
     productCache = {};
   }

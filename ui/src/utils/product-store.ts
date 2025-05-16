@@ -1,13 +1,14 @@
 import React, { useMemo } from "react";
 import brain from "brain";
 import { create } from "zustand";
-import { CommerceLayerProduct, Market, Product } from "./types"; // Adjust if types are elsewhere
+import { Market, Product } from '@/types';
+import { ProductResponse } from "../brain/data-contracts";
 import { useMarketStore } from "./market-store"; // Adjust if market store is elsewhere
 import { mapCommerceLayerProductToAppProduct } from "./commerce-layer-mapper"; // Corrected import path
 import { toast } from "sonner";
 
 interface ProductState {
-  products: CommerceLayerProduct[]; // Store raw CL products
+  products: ProductResponse[]; // Store raw CL products
   isLoading: boolean;
   error: string | null;
   // Actions
@@ -27,35 +28,34 @@ export const useProductStore = create<ProductState>((set, get) => ({
 
     set({ isLoading: true, error: null });
     console.log(
-      `[product-store] Fetching Commerce Layer products for market: ${selectedMarket}, category: ${category || 'All'}`,
+      `[product-store] Fetching Commerce Layer products for market: ${selectedMarket.name} (${selectedMarket.region}), category: ${category || 'All'}`,
     );
 
     try {
       // Fetch products from the Commerce Layer API endpoint
       const response = await brain.get_commerce_layer_products({
-          market: selectedMarket,
+          market: selectedMarket.name.toUpperCase(),
           category: category, // Pass category to API
       });
-      const data = await response.json();
+      const data = response.data;
 
-      if (response.ok && data.products) {
-        console.log(`Received ${data.products.length} Commerce Layer products for market ${selectedMarket}, category: ${category || 'All'}`);
+      if (data?.products) {
+        console.log(`Received ${data.products.length} Commerce Layer products for market ${selectedMarket.name} (${selectedMarket.region}), category: ${category || 'All'}`);
         // Store the raw Commerce Layer product data
         set({
-          products: data.products as CommerceLayerProduct[],
+          products: data.products as ProductResponse[],
           isLoading: false,
         });
       } else {
-        const errorMsg = data?.detail || response.statusText || "Failed to fetch products";
-        console.error(`Error fetching products for market ${selectedMarket}, category: ${category || 'All'}:`, errorMsg);
-        set({ error: errorMsg, isLoading: false, products: [] });
-        toast.error(`Error fetching products: ${errorMsg}`);
+        console.error(`Error fetching products for market ${selectedMarket.name} (${selectedMarket.region}), category: ${category || 'All'}`);
+        set({ error: "Failed to fetch products", isLoading: false, products: [] });
+        toast.error("Failed to fetch products");
       }
     } catch (error: any) {
-      console.error(`Catch error fetching products for market ${selectedMarket}, category: ${category || 'All'}:`, error);
-      const errorMsg = error.message || "An unexpected error occurred";
+      const errorMsg = error instanceof Error ? error.message : 'Failed to fetch products';
+      console.error(`Catch error fetching products for market ${selectedMarket.name} (${selectedMarket.region}), category: ${category || 'All'}:`, errorMsg);
       set({ error: errorMsg, isLoading: false, products: [] });
-      toast.error(`Error fetching products: ${errorMsg}`);
+      toast.error(errorMsg);
     }
   },
 }));
