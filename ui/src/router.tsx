@@ -1,18 +1,20 @@
 import type { ReactNode } from './react-types';
 import { createBrowserRouter } from "react-router-dom";
 import { userRoutes } from "./user-routes";
-import { CommerceLayerLogin } from "./components/CommerceLayerLogin";
-
 import NotFoundPage from "pages/NotFoundPage";
 import SomethingWentWrongPage from "pages/SomethingWentWrongPage";
+import { RootLayout } from "./components/RootLayout";
 
-export const router = createBrowserRouter(
-  [
-    ...userRoutes,
-    {
-      path: "*",
-      element: <NotFoundPage />,
-      errorElement: <SomethingWentWrongPage />,
-    },
-  ]
-);
+export const router = createBrowserRouter([
+  {
+    element: <RootLayout />,
+    errorElement: <SomethingWentWrongPage />,
+    children: [
+      ...userRoutes,
+      {
+        path: "*",
+        element: <NotFoundPage />,
+      },
+    ],
+  },
+]);

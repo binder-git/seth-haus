@@ -11,7 +11,14 @@ import { AlertTriangle } from "lucide-react";
 const FeaturedProductsComponent: React.FC<{ className?: string }> = ({ className }) => {
   const { market } = useMarketStore();
 
-  const marketName = (typeof market === 'object' && market !== null ? market.name : market || 'UK') as 'UK' | 'EU';
+  // Ensure market is of type Market
+  const marketName = market?.name || 'UK';
+  
+  console.log('[FeaturedProducts] Market from store:', {
+    market,
+    name: marketName,
+    type: typeof marketName
+  });
 
   const [products, setProducts] = useState<ProductResponse[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<ProductResponse[]>([]);
@@ -19,11 +26,14 @@ const FeaturedProductsComponent: React.FC<{ className?: string }> = ({ className
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log("[FeaturedProducts] useEffect triggered. Current market:", market); // Log market in effect
+    console.log("[FeaturedProducts] useEffect triggered. Current market:", {
+      name: market?.name,
+      id: market?.id
+    }); 
     const fetchFeaturedProducts = async () => {
       // Add guard to ensure market is valid before fetching
       // Check the actual market value from the store
-      if (!market) {
+      if (!market?.name) {
         console.warn("Market not selected or invalid, skipping featured product fetch.");
         setProducts([]); // Ensure products are cleared if market is invalid
         setIsLoading(false);
@@ -34,18 +44,27 @@ const FeaturedProductsComponent: React.FC<{ className?: string }> = ({ className
       setError(null);
       try {
         // Fetch featured products for the current market
+        console.log(`[FeaturedProducts] Fetching products for market: ${market.name.toUpperCase()}`);
         const brainClient = new Brain();
-        const response = await brainClient.get_featured_products({ market: marketName });
-        if (!response) {
-          throw new Error('Failed to fetch featured products');
+        const response = await brainClient.get_featured_products({ market: market.name.toUpperCase() });
+        
+        // Parse the response manually
+        const jsonData = await response.json();
+        console.log("[FeaturedProducts] Parsed API Response:", jsonData);
+        
+        if (jsonData?.products && Array.isArray(jsonData.products)) {
+          console.log(`[FeaturedProducts] Found ${jsonData.products.length} featured products:`, 
+            jsonData.products.map((p: ProductResponse) => ({ id: p.id, name: p.name, code: p.code })));
+          setProducts(jsonData.products);
+        } else {
+          console.log('[FeaturedProducts] No products array in response. Response structure:', 
+            Object.keys(jsonData || {}));
+          setProducts([]);
         }
-        const data = response.data;
-        console.log("[FeaturedProducts] API Response data:", data); // Log fetched data
-        // Ensure data is an array before setting
-        setProducts(Array.isArray(data) ? data : []); 
       } catch (err) {
-        console.error('[FeaturedProducts] Error fetching featured products:', err);
-        setError(err instanceof Error ? err.message : 'Failed to load featured products. Please try again later.');
+        const errorMsg = err instanceof Error ? err.message : 'Failed to load featured products';
+        console.error(`[FeaturedProducts] Error fetching featured products for market ${market?.name || 'unknown'}:`, errorMsg);
+        setError(errorMsg);
         setProducts([]);
       } finally {
         setIsLoading(false);
@@ -82,7 +101,7 @@ const FeaturedProductsComponent: React.FC<{ className?: string }> = ({ className
             <h2 className="text-3xl font-bold mb-2">Featured Products</h2>
             {/* Update subtitle based on market from store */}
             <p className="text-muted-foreground">
-              Top picks for your {market === "UK" ? "United Kingdom" : "European"} training needs
+              Top picks for your {market?.name === "UK" ? "United Kingdom" : "European"} training needs
             </p>
           </div>
           <Link 

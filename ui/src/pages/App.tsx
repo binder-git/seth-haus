@@ -2,7 +2,7 @@ import React from "react";
 import { useMarketStore } from "utils/market-store"; // Import the global store
 import { TriHero } from "components/TriHero";
 import { Categories } from "components/Categories";
-import { Market } from '@/utils/types';
+import { Market } from '@/types';
 import FeaturedProducts from "components/FeaturedProducts";
 import { ShippingInfo } from "components/ShippingInfo";
 import { CommerceLayerProvider } from "@/contexts/CommerceLayerContext";
@@ -14,6 +14,7 @@ export default function App() {
   // Ensure market is always defined
   const selectedMarket = market || {
     name: 'UK',
+    region: 'uk',
     id: 'uk-market',
     countryCode: 'GB',
     currencyCode: 'GBP'

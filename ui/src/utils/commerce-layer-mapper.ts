@@ -1,4 +1,4 @@
-import { Market, Product, ProductPricing, validateCategory, validateBrand } from "./types";
+import { Category, Market, MarketConfig, MarketName, Product, ProductBrand, ProductPricing, validateBrand, validateCategory } from '@/types';
 import { CommerceLayerProduct, ProductImage, ProductAttribute } from "./commerce-layer-service";
 
 // Map Commerce Layer product to our app's product format
@@ -14,17 +14,25 @@ export const mapCommerceLayerProductToAppProduct = (
   };
 
   // Get pricing information
-  const pricing: { [key in Market]?: ProductPricing } = {};
+  const pricing: { [key in MarketName]?: ProductPricing } = {};
   
   if (clProduct.price) {
     // Create pricing object for the current market
-    pricing[currentMarket] = {
+    pricing[currentMarket.name] = {
       price: clProduct.price.amount_float ?? 0,
       currency: clProduct.price.currency_code ?? 'EUR',
       symbol: clProduct.price.currency_code === 'GBP' ? '£' : '€',
       formatted: clProduct.price.formatted ?? '', // Use the formatted string from CL
     };
   }
+
+  // Default pricing for current market if not available
+  const defaultPricing: ProductPricing = {
+    price: 0,
+    currency: currentMarket.currencyCode || 'EUR',
+    symbol: currentMarket.currencyCode === 'GBP' ? '£' : '€',
+    formatted: '0.00'
+  };
 
   // Map product fields with null checks
   return {
@@ -43,7 +51,7 @@ export const mapCommerceLayerProductToAppProduct = (
     featured: getAttributeValue('featured') === 'true',
     colors: [], // These would need to be extracted from variants or other attributes
     sizes: [], // These would need to be extracted from variants or other attributes
-    pricing
+    pricing: pricing[currentMarket.name] || defaultPricing
   };
 };
 

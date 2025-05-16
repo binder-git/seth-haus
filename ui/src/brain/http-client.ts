@@ -258,6 +258,10 @@ export class HttpClient<SecurityDataType = unknown> {
         throw new Error("Response not OK");
       }
 
+      if (!response.body) {
+        throw new Error("No response body");
+      }
+
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       const contentType = response.headers.get("Content-Type");
@@ -273,7 +277,7 @@ export class HttpClient<SecurityDataType = unknown> {
           try {
             data = JSON.parse(chunk);
           } catch (error) {
-            throw new Error(error);
+            throw new Error(error instanceof Error ? error.message : 'JSON parse error');
             continue;
           }
         } else if (contentType === "application/octet-stream") {
@@ -286,7 +290,7 @@ export class HttpClient<SecurityDataType = unknown> {
         yield data as T;
       }
     } catch (error) {
-      throw new Error(error);
+      throw new Error(error instanceof Error ? error.message : String(error));
     } finally {
       if (cancelToken) {
         this.abortControllers.delete(cancelToken);

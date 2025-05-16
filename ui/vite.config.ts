@@ -8,8 +8,8 @@ import { createHtmlPlugin } from 'vite-plugin-html';
 
 const buildVariables = () => {
 	const defines: Record<string, string> = {
-		__API_URL__: JSON.stringify("http://localhost:8000"),
-		__WS_API_URL__: JSON.stringify("ws://localhost:8000"),
+		__API_URL__: JSON.stringify("/.netlify/functions"),
+		__WS_API_URL__: JSON.stringify(""),
 		__COMMERCE_LAYER_CLIENT_ID__: JSON.stringify(process.env.VITE_COMMERCE_LAYER_CLIENT_ID),
 		__COMMERCE_LAYER_CLIENT_SECRET__: JSON.stringify(process.env.VITE_COMMERCE_LAYER_CLIENT_SECRET),
 		__COMMERCE_LAYER_ORGANIZATION__: JSON.stringify(process.env.VITE_COMMERCE_LAYER_ORGANIZATION),
@@ -26,18 +26,15 @@ const buildVariables = () => {
 
 // https://vite.dev/config/
 export default defineConfig({
-  envFile: '.env.development',
-	define: buildVariables(),
-	plugins: [react(), splitVendorChunkPlugin(), tsConfigPaths(), injectHTML(), createHtmlPlugin()],
-	css: {
-		postcss: {
-			config: './postcss.config.cjs',
-		},
-		devSourcemap: true,
-		modules: {
-			localsConvention: 'camelCase',
-		},
-	},
+  define: buildVariables(),
+  plugins: [react(), splitVendorChunkPlugin(), tsConfigPaths(), injectHTML(), createHtmlPlugin()],
+  css: {
+    postcss: './postcss.config.cjs',
+    devSourcemap: true,
+    modules: {
+      localsConvention: 'camelCase',
+    },
+  },
 	server: {
 		proxy: {
 			"/routes": {

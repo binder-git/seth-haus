@@ -267,7 +267,7 @@ export interface GetFeaturedProductsParams {
 }
 
 /** Response Get Featured Products */
-export type GetFeaturedProductsData = ProductResponse[];
+export type GetFeaturedProductsData = ProductsResponse;
 
 export type GetFeaturedProductsError = HTTPValidationError;
 
