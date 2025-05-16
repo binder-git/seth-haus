@@ -1,0 +1,21 @@
+{
+  "extends": "./node_modules/@tsconfig/node18/tsconfig.json",
+  "compilerOptions": {
+    "target": "es2020",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "strict": true,
+    "outDir": "netlify/functions",
+    "rootDir": "netlify/functions",
+    "sourceMap": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./netlify/functions/*"]
+    }
+  },
+  "include": ["netlify/functions/src/**/*.ts"],
+  "exclude": ["node_modules", "**/*.test.ts"]
+}

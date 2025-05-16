@@ -6,6 +6,7 @@ import SimpleHeader from "./SimpleHeader";
 import { CLCoreConfigResponse, TokenResponse, Market } from "@/types";
 import { useMarketStore } from "@/utils/market-store";
 import { API } from "@/config";
+import { NetlifyBrainProvider } from "@/contexts/NetlifyBrainContext";
 
 // --- Context Definition ---
 export interface AppContextProps {
@@ -60,13 +61,13 @@ export const AppProvider = ({ children }: AppProviderProps): React.ReactElement 
   // Get core config from environment
   const getCoreConfig = (): CLCoreConfigResponse => {
     return {
-      clientId: import.meta.env.VITE_COMMERCE_LAYER_CLIENT_ID || '',
+      clientId: import.meta.env.COMMERCE_LAYER_CLIENT_ID || '',
       baseUrl: API.baseUrl,
       marketIdMap: {
-        EU: API.markets.EU.scopeId,
-        UK: API.markets.UK.scopeId
+        EU: import.meta.env.COMMERCE_LAYER_EU_SCOPE || 'market:qjANwhQrJg',
+        UK: import.meta.env.COMMERCE_LAYER_UK_SCOPE || 'market:vjzmJhvEDo'
       },
-      organization: API.organization
+      organization: import.meta.env.COMMERCE_LAYER_ORGANIZATION || ''
     };
   };
 
@@ -160,13 +161,19 @@ export const AppProvider = ({ children }: AppProviderProps): React.ReactElement 
   ]);
 
   return (
-    <AppContext.Provider value={value}>
-      <TooltipProvider>
-        <SimpleHeader />
-        {children}
-        <SimpleFooter />
-        <Toaster position="bottom-right" />
-      </TooltipProvider>
-    </AppContext.Provider>
+    <NetlifyBrainProvider>
+      <AppContext.Provider value={value}>
+        <TooltipProvider>
+          <div className="flex flex-col min-h-screen">
+            <SimpleHeader selectedMarket={market} onMarketChange={setMarket} />
+            <main className="flex-grow">
+              {children}
+            </main>
+            <SimpleFooter />
+            <Toaster position="bottom-right" />
+          </div>
+        </TooltipProvider>
+      </AppContext.Provider>
+    </NetlifyBrainProvider>
   );
 };

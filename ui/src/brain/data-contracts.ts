@@ -42,7 +42,10 @@ export interface ProductDetailResponse {
   name: string;
   /** Description */
   description?: string | null;
+  /** Price */
   price?: ProductPrice | null;
+  /** Category */
+  category?: string | null;
   /**
    * Images
    * @default []

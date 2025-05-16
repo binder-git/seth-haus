@@ -6,14 +6,14 @@ export const APP_ID = 'seth-haus';
 export const APP_BASE_PATH = '/';
 
 // API constants
-export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+export const API_URL = import.meta.env.API_URL || 'http://localhost:3000';
 export const API_PATH = '/api';
-export const WS_API_URL = import.meta.env.VITE_WS_API_URL || 'ws://localhost:3000';
+export const WS_API_URL = import.meta.env.WS_API_URL || 'ws://localhost:3000';
 
 // Commerce Layer constants
-export const CL_CLIENT_ID = import.meta.env.VITE_CL_CLIENT_ID;
-export const CL_ENDPOINT = import.meta.env.VITE_CL_ENDPOINT;
-export const CL_ORGANIZATION = 'seth-s-triathlon-haus';
+export const CL_CLIENT_ID = import.meta.env.COMMERCE_LAYER_CLIENT_ID;
+export const CL_ENDPOINT = `https://${import.meta.env.COMMERCE_LAYER_ORGANIZATION || 'seth-s-triathlon-haus'}.commercelayer.io`;
+export const CL_ORGANIZATION = import.meta.env.COMMERCE_LAYER_ORGANIZATION || 'seth-s-triathlon-haus';
 
 // Environment
 export type Mode = 'development' | 'production' | 'test';

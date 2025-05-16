@@ -79,18 +79,25 @@ export class Brain<SecurityDataType = unknown> extends HttpClient<SecurityDataTy
    * @tags dbtn/module:commerce_layer
    * @name get_featured_products
    * @summary Get Featured Products
-   * @request GET:/routes/commerce-layer/featured-products
+   * @request GET:/.netlify/functions/featured-products
    */
   get_featured_products = async (query: GetFeaturedProductsParams, params: RequestParams = {}) => {
-    const response = await this.request<GetFeaturedProductsData, GetFeaturedProductsError>({
-      path: `/routes/commerce-layer/featured-products`,
-      method: "GET",
-      query: query,
-      format: "json",
-      ...params,
-    });
+    const response = await fetch(
+      `/.netlify/functions/featured-products?market=${query.market}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      },
+    );
 
-    return response;
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to fetch featured products');
+    }
+
+    return response.json();
   };
 
   /**
@@ -134,7 +141,7 @@ export class Brain<SecurityDataType = unknown> extends HttpClient<SecurityDataTy
    */
   commerce_layer_health_check = (params: RequestParams = {}) =>
     this.request<CommerceLayerHealthCheckData, any>({
-      path: `/routes/commerce-layer/health`,
+      path: `/.netlify/functions/health`,
       method: "GET",
       ...params,
     });

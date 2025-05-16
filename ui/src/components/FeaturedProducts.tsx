@@ -1,21 +1,21 @@
-import React, { useState, useEffect, useMemo } from "react"; // Added useMemo
-import { Link } from "react-router-dom";
-import { useMarketStore } from "../utils/market-store"; // Use Zustand store
-import { Brain } from "../brain/Brain";
+import React, { useState, useEffect, useMemo } from "react";
+import { Link, useOutletContext } from "react-router-dom";
+import { netlifyBrain } from "../brain/NetlifyBrain";
 import { ProductResponse } from "../brain/data-contracts";
-import { ProductItemCard } from "components/ProductItemCard"; // Import the standard product card
+import { ProductItemCard } from "components/ProductItemCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
+import { AppContextType } from "../pages/App";
 
 const FeaturedProductsComponent: React.FC<{ className?: string }> = ({ className }) => {
-  const { market } = useMarketStore();
-
+  const { selectedMarket } = useOutletContext<AppContextType>();
+  
   // Ensure market is of type Market
-  const marketName = market?.name || 'UK';
+  const marketName = selectedMarket?.name || 'UK';
   
   console.log('[FeaturedProducts] Market from store:', {
-    market,
+    market: selectedMarket,
     name: marketName,
     type: typeof marketName
   });
@@ -27,13 +27,13 @@ const FeaturedProductsComponent: React.FC<{ className?: string }> = ({ className
 
   useEffect(() => {
     console.log("[FeaturedProducts] useEffect triggered. Current market:", {
-      name: market?.name,
-      id: market?.id
+      name: marketName,
+      id: selectedMarket?.id
     }); 
     const fetchFeaturedProducts = async () => {
       // Add guard to ensure market is valid before fetching
       // Check the actual market value from the store
-      if (!market?.name) {
+      if (!marketName) {
         console.warn("Market not selected or invalid, skipping featured product fetch.");
         setProducts([]); // Ensure products are cleared if market is invalid
         setIsLoading(false);
@@ -44,35 +44,40 @@ const FeaturedProductsComponent: React.FC<{ className?: string }> = ({ className
       setError(null);
       try {
         // Fetch featured products for the current market
-        console.log(`[FeaturedProducts] Fetching products for market: ${market.name.toUpperCase()}`);
-        const brainClient = new Brain();
-        const response = await brainClient.get_featured_products({ market: market.name.toUpperCase() });
+        console.log(`[FeaturedProducts] Fetching products for market: ${marketName.toUpperCase()}`);
+        const response = await netlifyBrain.get_featured_products({ market: marketName.toUpperCase() });
         
-        // Parse the response manually
-        const jsonData = await response.json();
-        console.log("[FeaturedProducts] Parsed API Response:", jsonData);
+        console.log("[FeaturedProducts] API Response:", response);
         
-        if (jsonData?.products && Array.isArray(jsonData.products)) {
-          console.log(`[FeaturedProducts] Found ${jsonData.products.length} featured products:`, 
-            jsonData.products.map((p: ProductResponse) => ({ id: p.id, name: p.name, code: p.code })));
-          setProducts(jsonData.products);
+        if (response?.data?.products) {
+          console.log(`[FeaturedProducts] Found ${response.data.products.length} featured products:`, 
+            response.data.products.map((p: any) => ({
+              id: p.id,
+              name: p.attributes.name,
+              featured: p.attributes.metadata?.featured
+            }))
+          );
+          setProducts(response.data.products);
+          setFilteredProducts(response.data.products);
         } else {
-          console.log('[FeaturedProducts] No products array in response. Response structure:', 
-            Object.keys(jsonData || {}));
+          console.log('[FeaturedProducts] Invalid products data in response. Response structure: ', 
+            JSON.stringify(response, null, 2));
           setProducts([]);
+          setFilteredProducts([]);
         }
-      } catch (err) {
-        const errorMsg = err instanceof Error ? err.message : 'Failed to load featured products';
-        console.error(`[FeaturedProducts] Error fetching featured products for market ${market?.name || 'unknown'}:`, errorMsg);
-        setError(errorMsg);
+      } catch (error) {
+        const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+        console.error(`[FeaturedProducts] Error fetching featured products for market ${marketName || 'unknown'}:`, errorMsg);
+        setError(`Failed to load featured products: ${errorMsg}`);
         setProducts([]);
+        setFilteredProducts([]);
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchFeaturedProducts();
-  }, [market]); // Re-fetch when market changes
+  }, [marketName, selectedMarket?.id]); // Only re-run when marketName changes
 
   const memoizedSkeletons = useMemo(() => {
     return Array.from({ length: 3 }).map((_, index) => ( // Render 3 skeletons
@@ -101,7 +106,7 @@ const FeaturedProductsComponent: React.FC<{ className?: string }> = ({ className
             <h2 className="text-3xl font-bold mb-2">Featured Products</h2>
             {/* Update subtitle based on market from store */}
             <p className="text-muted-foreground">
-              Top picks for your {market?.name === "UK" ? "United Kingdom" : "European"} training needs
+              Top picks for your {marketName === "UK" ? "United Kingdom" : "European"} training needs
             </p>
           </div>
           <Link 

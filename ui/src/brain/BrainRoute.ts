@@ -70,7 +70,7 @@ export namespace Brain {
    * @tags dbtn/module:commerce_layer
    * @name get_featured_products
    * @summary Get Featured Products
-   * @request GET:/routes/commerce-layer/featured-products
+   * @request GET:/.netlify/functions/featured-products
    */
   export namespace get_featured_products {
     export type RequestParams = {};

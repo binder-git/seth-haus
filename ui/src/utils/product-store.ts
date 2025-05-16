@@ -1,11 +1,10 @@
-import React, { useMemo } from "react";
-import brain from "brain";
 import { create } from "zustand";
+import { useMemo } from 'react';
 import { Market, Product } from '@/types';
 import { ProductResponse } from "../brain/data-contracts";
-import { useMarketStore } from "./market-store"; // Adjust if market store is elsewhere
-import { mapCommerceLayerProductToAppProduct } from "./commerce-layer-mapper"; // Corrected import path
+import { mapCommerceLayerProductToAppProduct } from "./commerce-layer-mapper";
 import { toast } from "sonner";
+import { netlifyBrain } from "@/brain/NetlifyBrain";
 
 interface ProductState {
   products: ProductResponse[]; // Store raw CL products
@@ -20,40 +19,42 @@ export const useProductStore = create<ProductState>((set, get) => ({
   isLoading: false,
   error: null,
 
-  fetchProducts: async (market: Market, category?: string | null) => { // Market is now required
-    // Removed fallback: const selectedMarket = market || useMarketStore.getState().market;
+  fetchProducts: async (market: Market, category?: string | null) => {
     const selectedMarket = market; // Use the provided market
-
-    // Caching logic removed - fetch should be triggered by component based on market/category
 
     set({ isLoading: true, error: null });
     console.log(
-      `[product-store] Fetching Commerce Layer products for market: ${selectedMarket.name} (${selectedMarket.region}), category: ${category || 'All'}`,
+      `[product-store] Fetching products via Netlify Function for market: ${selectedMarket.name} (${selectedMarket.region}), category: ${category || 'All'}`,
     );
 
     try {
-      // Fetch products from the Commerce Layer API endpoint
-      const response = await brain.get_commerce_layer_products({
-          market: selectedMarket.name.toUpperCase(),
-          category: category, // Pass category to API
+      // Fetch products using the Netlify Brain service
+      const response = await netlifyBrain.get_commerce_layer_products({
+        market: selectedMarket.name.toUpperCase(),
+        category: category || undefined,
       });
-      const data = response.data;
-
-      if (data?.products) {
-        console.log(`Received ${data.products.length} Commerce Layer products for market ${selectedMarket.name} (${selectedMarket.region}), category: ${category || 'All'}`);
-        // Store the raw Commerce Layer product data
+      
+      console.log('Netlify Function response:', response);
+      
+      // The response is in the format { data: { products: ProductResponse[], meta?: any } }
+      const products = response?.data?.products;
+      
+      if (Array.isArray(products)) {
+        console.log(`Received ${products.length} products for market ${selectedMarket.name} (${selectedMarket.region}), category: ${category || 'All'}`);
+        // Store the raw product data
         set({
-          products: data.products as ProductResponse[],
+          products,
           isLoading: false,
         });
       } else {
-        console.error(`Error fetching products for market ${selectedMarket.name} (${selectedMarket.region}), category: ${category || 'All'}`);
-        set({ error: "Failed to fetch products", isLoading: false, products: [] });
-        toast.error("Failed to fetch products");
+        console.error(`Unexpected response format for market ${selectedMarket.name} (${selectedMarket.region}):`, response);
+        const errorMsg = "Unexpected response format from server";
+        set({ error: errorMsg, isLoading: false, products: [] });
+        toast.error("Failed to fetch products: Unexpected response format");
       }
     } catch (error: any) {
       const errorMsg = error instanceof Error ? error.message : 'Failed to fetch products';
-      console.error(`Catch error fetching products for market ${selectedMarket.name} (${selectedMarket.region}), category: ${category || 'All'}:`, errorMsg);
+      console.error(`Error fetching products for market ${selectedMarket.name} (${selectedMarket.region}):`, errorMsg, error);
       set({ error: errorMsg, isLoading: false, products: [] });
       toast.error(errorMsg);
     }

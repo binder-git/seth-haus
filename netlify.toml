@@ -1,49 +1,72 @@
 # This section defines build settings for your site.
 [build]
-  # Command to build your React frontend.
-  # It changes to the 'ui' directory, installs dependencies, and runs the build script.
-  command = "cd ui && npm install && npm run build"
+  # Install dependencies and build the entire project
+  command = "npm install && npm run build"
 
   # The directory (relative to the root of your project) that contains the deploy-ready
   # assets after the build command completes. For Vite/React, this is usually 'ui/dist'.
   publish = "ui/dist"
 
-  # The directory where your Netlify serverless functions will reside.
-  functions = "netlify/functions"
+  # The base directory where your Netlify serverless functions will reside.
+  functions = "netlify/functions/dist"
+  
+  # Function configuration
+  [functions]
+    node_bundler = "esbuild"
+    external_node_modules = ["@commercelayer/sdk"]
+    # Point to the built functions directory
+    directory = "netlify/functions/dist"
+
+# Proxy API requests to Netlify Functions - must come before the catch-all
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+  force = true
+
+# Explicit redirect for featured-products
+[[redirects]]
+  from = "/functions/featured-products"
+  to = "/.netlify/functions/featured-products"
+  status = 200
+  force = true
 
 # This rule ensures that any direct navigation to a frontend route (e.g., /products-page)
 # is handled by your React app's router (by serving index.html).
 # This is essential for Single Page Applications (SPAs).
+# The '!' prefix makes this a negative lookahead to exclude /api/* paths
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200 # A 200 status indicates a rewrite (serve this file) not a 301/302 redirect.
 
-# This rule proxies API calls made from your frontend (e.g., /api/get-something)
-# to your Netlify serverless functions.
-# For example, a request to /api/myfunction will be routed to /.netlify/functions/myfunction.
-[[redirects]]
-  from = "/api/*"
-  to = "/.netlify/functions/:splat" # The :splat captures the part after /api/
-  status = 200 # Indicates a rewrite/proxy.
-
 # Environment variables configuration
 [context.production.environment]
-  VITE_COMMERCE_LAYER_CLIENT_ID = "${COMMERCE_LAYER_CLIENT_ID}"
-  VITE_COMMERCE_LAYER_CLIENT_SECRET = "${COMMERCE_LAYER_CLIENT_SECRET}"
-  VITE_COMMERCE_LAYER_ORGANIZATION = "${COMMERCE_LAYER_ORGANIZATION}"
-  VITE_COMMERCE_LAYER_DOMAIN = "${COMMERCE_LAYER_DOMAIN}"
-  VITE_COMMERCE_LAYER_EU_SCOPE = "${COMMERCE_LAYER_EU_SCOPE}"
-  VITE_COMMERCE_LAYER_UK_SCOPE = "${COMMERCE_LAYER_UK_SCOPE}"
-  VITE_COMMERCE_LAYER_EU_SKU_LIST_ID = "${COMMERCE_LAYER_EU_SKU_LIST_ID}"
-  VITE_COMMERCE_LAYER_UK_SKU_LIST_ID = "${COMMERCE_LAYER_UK_SKU_LIST_ID}"
+  # Commerce Layer Configuration
+  COMMERCE_LAYER_CLIENT_ID = "${COMMERCE_LAYER_CLIENT_ID}"
+  COMMERCE_LAYER_CLIENT_SECRET = "${COMMERCE_LAYER_CLIENT_SECRET}"
+  COMMERCE_LAYER_ORGANIZATION = "${COMMERCE_LAYER_ORGANIZATION}"
+  COMMERCE_LAYER_DOMAIN = "${COMMERCE_LAYER_DOMAIN}"
+  COMMERCE_LAYER_EU_SCOPE = "${COMMERCE_LAYER_EU_SCOPE}"
+  COMMERCE_LAYER_UK_SCOPE = "${COMMERCE_LAYER_UK_SCOPE}"
+  COMMERCE_LAYER_EU_SKU_LIST_ID = "${COMMERCE_LAYER_EU_SKU_LIST_ID}"
+  COMMERCE_LAYER_UK_SKU_LIST_ID = "${COMMERCE_LAYER_UK_SKU_LIST_ID}"
+  
+  # App Configuration
+  APP_TITLE = "Seth's Triathlon Haus"
+  APP_ID = "seths-triathlon-haus"
+  
+  # API Configuration
+  API_URL = "https://seth-haus.netlify.app/.netlify/functions"
+  WS_API_URL = "wss://seth-haus.netlify.app"
 
 [context.development.environment]
-  VITE_COMMERCE_LAYER_CLIENT_ID = "${COMMERCE_LAYER_CLIENT_ID}"
-  VITE_COMMERCE_LAYER_CLIENT_SECRET = "${COMMERCE_LAYER_CLIENT_SECRET}"
-  VITE_COMMERCE_LAYER_ORGANIZATION = "${COMMERCE_LAYER_ORGANIZATION}"
-  VITE_COMMERCE_LAYER_DOMAIN = "${COMMERCE_LAYER_DOMAIN}"
-  VITE_COMMERCE_LAYER_EU_SCOPE = "${COMMERCE_LAYER_EU_SCOPE}"
-  VITE_COMMERCE_LAYER_UK_SCOPE = "${COMMERCE_LAYER_UK_SCOPE}"
-  VITE_COMMERCE_LAYER_EU_SKU_LIST_ID = "${COMMERCE_LAYER_EU_SKU_LIST_ID}"
-  VITE_COMMERCE_LAYER_UK_SKU_LIST_ID = "${COMMERCE_LAYER_UK_SKU_LIST_ID}"
+  # Commerce Layer Configuration - Development
+  COMMERCE_LAYER_CLIENT_ID = "3uRXduKWJ8qr4G7lUBdrC1GFormL5Qa-RbFy-eCIGtA"
+  COMMERCE_LAYER_CLIENT_SECRET = "REMOVED"
+  COMMERCE_LAYER_ORGANIZATION = "seth-s-triathlon-haus"
+  COMMERCE_LAYER_DOMAIN = "commercelayer.io"  # Just the domain, not the full URL
+  COMMERCE_LAYER_EU_SCOPE = "market:qjANwhQrJg"
+  COMMERCE_LAYER_UK_SCOPE = "market:vjzmJhvEDo"
+  COMMERCE_LAYER_EU_SKU_LIST_ID = "JjEpIvwjey"
+  COMMERCE_LAYER_UK_SKU_LIST_ID = "nVvZIAKxGn"
