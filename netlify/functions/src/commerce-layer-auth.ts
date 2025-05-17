@@ -1,15 +1,21 @@
-import { Handler, HandlerEvent, HandlerContext } from '@netlify/functions';
-import axios, { AxiosError } from 'axios';
+// Import shared types
+import type {
+  HandlerResponse,
+  HandlerEvent,
+  HandlerContext,
+  TokenResponse
+} from './types';
 
-// Define types for Commerce Layer token response
-interface TokenResponse {
-  access_token: string;
-  expires_in: number;
-  token_type: string;
-  scope: string;
-}
+// Import dependencies
+import axios from 'axios';
+
+// Initialize axios instance for Commerce Layer API
+const commerceLayerAxios = axios.create({
+  baseURL: `https://${process.env.COMMERCE_LAYER_ORGANIZATION}.commercelayer.io/api`
+});
 
 // Secure retrieval of environment variables
+// Helper function to get environment variables
 const getEnvVar = (key: string): string => {
   const value = process.env[key];
   if (!value) {
@@ -19,7 +25,12 @@ const getEnvVar = (key: string): string => {
 };
 
 // Centralized error response function
-const createErrorResponse = (statusCode: number, message: string, details?: any) => ({
+// Create an error response
+const createErrorResponse = (
+  statusCode: number, 
+  message: string, 
+  details?: unknown
+): { statusCode: number; body: string; headers: Record<string, string> } => ({
   statusCode,
   body: JSON.stringify({ 
     message, 
@@ -30,7 +41,11 @@ const createErrorResponse = (statusCode: number, message: string, details?: any)
   }
 });
 
-export const handler: Handler = async (event: HandlerEvent, context: HandlerContext) => {
+// Main handler function
+const commerceLayerAuthHandler = async (
+  event: HandlerEvent,
+  context: HandlerContext
+): Promise<HandlerResponse> => {
   // Only allow POST requests
   if (event.httpMethod !== 'POST') {
     return createErrorResponse(405, 'Method Not Allowed');
@@ -43,21 +58,20 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
     const organization = getEnvVar('COMMERCE_LAYER_ORGANIZATION');
     const domain = getEnvVar('COMMERCE_LAYER_DOMAIN');
 
-    // Request access token from Commerce Layer
-    const tokenResponse = await axios.post<TokenResponse>(
-      `https://${organization}.${domain}/oauth/token`, 
-      {
+    // Request access token from Commerce Layer using centralized auth endpoint
+    const tokenResponse = await axios({
+      method: 'post',
+      url: 'https://auth.commercelayer.io/oauth/token',
+      data: {
         grant_type: 'client_credentials',
         client_id: clientId,
         client_secret: clientSecret
       },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        }
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
       }
-    );
+    });
 
     // Return the token securely
     return {
@@ -72,11 +86,11 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
         'Content-Type': 'application/json'
       }
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error('Authentication error:', error);
     
     // Handle Axios specific errors
-    if (error instanceof AxiosError) {
+    if (axios.isAxiosError(error)) {
       return createErrorResponse(
         error.response?.status || 500, 
         'Commerce Layer Authentication Failed', 
@@ -92,3 +106,6 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
     );
   }
 };
+
+// Export the handler
+export { commerceLayerAuthHandler as handler };

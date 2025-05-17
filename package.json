@@ -2,17 +2,22 @@
   "name": "seth-haus",
   "private": true,
   "version": "1.0.0",
+  "type": "module",
   "description": "Seth's Triathlon Haus - E-commerce site with Commerce Layer",
   "workspaces": [
     "ui",
-    "netlify/functions/*"
+    "netlify/functions"
   ],
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
   "scripts": {
     "dev": "npm run dev --workspace=ui",
     "build": "npm run build:functions && npm run build:ui",
     "build:ui": "npm run build --workspace=ui",
-    "build:functions": "rm -rf netlify/functions/dist && tsc -p tsconfig.functions.json",
-    "dev:functions": "tsc -p tsconfig.functions.json --watch",
+    "build:functions": "cd netlify/functions && npm install && npm run build",
+    "dev:functions": "cd netlify/functions && npm install && npm run dev",
     "test": "npm run test --workspaces",
     "lint": "npm run lint --workspaces",
     "typecheck": "npm run typecheck --workspaces",
@@ -27,6 +32,7 @@
   "devDependencies": {
     "@tsconfig/node18": "^18.2.4",
     "@types/node": "^20.17.47",
+    "@types/node-fetch": "^2.6.12",
     "typescript": "^5.1.3"
   }
 }

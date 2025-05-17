@@ -8,7 +8,8 @@ import React, {
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useAppProducts, useProductStore } from "utils/product-store";
 import { useAppContext } from "components/AppProvider";
-import { Product, Category, ProductBrand } from '@/types';
+import type { Product, Category } from '@/types/models/product';
+import { ProductBrand } from '@/types/models/product';
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Slider } from "@/components/ui/slider";
@@ -24,9 +25,13 @@ export default function Products() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [isPending, startTransition] = useTransition();
 
-  const categoryParam = searchParams.get("category") as Category | null;
+  const categoryParam = (searchParams.get("category") as Category) || undefined;
 
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 3000]);
+  
+  // Helper function to safely access product properties
+  const isNewProduct = (product: Product) => product.new === true;
+  const getProductImage = (product: Product) => product.image_url || product.imageUrl || '';
   const [showNew, setShowNew] = useState<boolean>(false);
   const [showBestSellers, setShowBestSellers] = useState<boolean>(false);
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
@@ -34,9 +39,8 @@ export default function Products() {
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(
     categoryParam
   );
-  const [selectedBrands, setSelectedBrands] = useState<ProductBrand[]>([]);
-
   const [availableBrands, setAvailableBrands] = useState<ProductBrand[]>([]);
+  const [selectedBrands, setSelectedBrands] = useState<ProductBrand[]>([]);
   const [currentMinPrice, setCurrentMinPrice] = useState<number>(0);
   const [currentMaxPrice, setCurrentMaxPrice] = useState<number>(3000);
   const [availableSizes, setAvailableSizes] = useState<string[]>([]);
@@ -58,36 +62,64 @@ export default function Products() {
   }, [categoryParam]);
 
   const derivedFilterOptions = useMemo(() => {
-    if (isLoading || !market || products.length === 0) {
+    if (!market || products.length === 0) {
       return {
-        calculatedBrands: [],
+        calculatedBrands: [] as ProductBrand[],
         calculatedMinPrice: 0,
         calculatedMaxPrice: 3000,
-        calculatedSizes: [],
-        calculatedColors: [],
+        calculatedSizes: [] as string[],
+        calculatedColors: [] as string[],
       };
     }
-    const brds = new Set<ProductBrand>();
-    let minP = Infinity;
-    let maxP = 0;
-    const szs = new Set<string>();
-    const clrs = new Set<string>();
-    products.forEach((product) => {
-      if (product.brand) brds.add(product.brand);
-      product.sizes?.forEach(size => szs.add(size));
-      product.colors?.forEach(color => clrs.add(color));
-      const price = product.pricing.price;
-      if (price !== undefined) {
-        if (price < minP) minP = price;
-        if (price > maxP) maxP = price;
-      }
-    });
+
+    // Get all prices, handling both pricing object and direct price
+    const prices = products
+      .map((p) => p.pricing?.price ?? p.price)
+      .filter((price): price is number => price !== undefined && !isNaN(price));
+
+    // Get all unique brands
+    const allBrands = Array.from(
+      new Set(
+        products
+          .map((p) => p.brand)
+          .filter((brand): brand is ProductBrand => {
+            // Ensure the brand is a valid ProductBrand string
+            if (!brand) return false;
+            const validBrands: ProductBrand[] = [
+              "BlueSeventy", "HUUB", "Zone3", "Orca", 
+              "Cervelo", "Canyon", "Specialized", "Trek",
+              "HOKA", "Nike", "Asics", "ON",
+              "2XU", "Castelli", "Zoot", "TYR"
+            ];
+            return validBrands.includes(brand as ProductBrand);
+          })
+      )
+    );
+
+    // Get all unique sizes
+    const allSizes = Array.from(
+      new Set(
+        products.flatMap((p) => p.sizes || []).filter(Boolean) as string[]
+      )
+    );
+
+    // Get all unique colors
+    const allColors = Array.from(
+      new Set(
+        products.flatMap((p) => p.colors || []).filter(Boolean) as string[]
+      )
+    );
+
+    // Calculate min and max prices, default to 0-3000 if no valid prices found
+    const minPrice = prices.length > 0 ? Math.floor(Math.min(...prices)) : 0;
+    const maxPrice = prices.length > 0 ? Math.ceil(Math.max(...prices)) : 3000;
+
     return {
-      calculatedBrands: Array.from(brds),
-      calculatedMinPrice: minP === Infinity ? 0 : Math.floor(minP),
-      calculatedMaxPrice: maxP === 0 ? 3000 : Math.ceil(maxP),
-      calculatedSizes: Array.from(szs),
-      calculatedColors: Array.from(clrs),
+      calculatedBrands: allBrands,
+      calculatedMinPrice: minPrice,
+      calculatedMaxPrice: maxPrice,
+      calculatedSizes: allSizes,
+      calculatedColors: allColors,
     };
   }, [products, market, isLoading]);
 
@@ -106,37 +138,53 @@ export default function Products() {
     if (isLoading || !market || products.length === 0) {
       return [];
     }
+    
     let filtered = [...products];
+    
+    // Filter by category if selected
     if (selectedCategory) {
-      const lowerCaseSelectedCategory = selectedCategory.toLowerCase();
-      filtered = filtered.filter((p) =>
-        p.category && p.category.toLowerCase() === lowerCaseSelectedCategory
+      filtered = filtered.filter((p) => 
+        p.category && p.category.toLowerCase() === selectedCategory.toLowerCase()
       );
     }
+    
+    // Filter by selected brands
     if (selectedBrands.length > 0) {
-      filtered = filtered.filter((p) => p.brand && selectedBrands.includes(p.brand));
+      filtered = filtered.filter((p) => 
+        p.brand && selectedBrands.includes(p.brand as ProductBrand)
+      );
     }
+    
+    // Filter by price range
     filtered = filtered.filter((p) => {
-      const price = p.pricing?.price;
-      if (price === undefined) return false;
-      return price >= priceRange[0] && price <= priceRange[1];
+      const price = p.pricing?.price ?? p.price; // Handle both pricing object and direct price
+      return price !== undefined && price >= priceRange[0] && price <= priceRange[1];
     });
+    
+    // Filter by new products
     if (showNew) {
-      filtered = filtered.filter((p) => p.new);
+      filtered = filtered.filter((p) => p.new === true);
     }
+    
+    // Filter by best sellers
     if (showBestSellers) {
-      filtered = filtered.filter((p) => p.bestSeller);
+      filtered = filtered.filter((p) => p.bestSeller === true);
     }
+    
+    // Filter by sizes if any selected
     if (selectedSizes.length > 0) {
       filtered = filtered.filter((p) =>
-        p.sizes?.some((size) => selectedSizes.includes(size))
+        p.sizes?.some((size: string) => selectedSizes.includes(size))
       );
     }
+    
+    // Filter by colors if any selected
     if (selectedColors.length > 0) {
       filtered = filtered.filter((p) =>
-        p.colors?.some((color) => selectedColors.includes(color))
+        p.colors?.some((color: string) => selectedColors.includes(color))
       );
     }
+    
     return filtered;
   }, [
     products,
@@ -167,13 +215,11 @@ export default function Products() {
     });
   }, [startTransition]);
 
-  const handleBrandFilter = useCallback((brand: ProductBrand) => {
-    startTransition(() => {
-      setSelectedBrands((prev) =>
-        prev.includes(brand) ? prev.filter((b) => b !== brand) : [...prev, brand]
-      );
-    });
-  }, [startTransition]);
+  const handleBrandChange = useCallback((brand: ProductBrand, checked: boolean) => {
+    setSelectedBrands((prev) =>
+      checked ? [...prev, brand] : prev.filter((b) => b !== brand)
+    );
+  }, [setSelectedBrands]);
 
   const handleCategoryChange = useCallback((category: Category | null) => {
     startTransition(() => {
@@ -188,14 +234,15 @@ export default function Products() {
 
   const handleClearFilters = useCallback(() => {
     startTransition(() => {
-      setSelectedBrands([]);
+      setSelectedCategory(null);
       setPriceRange([currentMinPrice, currentMaxPrice]);
       setShowNew(false);
       setShowBestSellers(false);
       setSelectedSizes([]);
       setSelectedColors([]);
+      setSelectedBrands([]);
     });
-  }, [startTransition, currentMinPrice, currentMaxPrice]);
+  }, [currentMinPrice, currentMaxPrice, startTransition]);
 
   const handleViewDetails = useCallback((productCode: string, productId: string) => {
     if (!market) {
@@ -341,7 +388,31 @@ export default function Products() {
                 </div>
               </div>
             )}
-            <Button variant="outline" onClick={handleClearFilters} disabled={isPending || isLoading}>Clear Filters</Button>
+            {availableBrands.length > 0 && (
+              <div>
+                <h3 className="text-lg font-semibold mb-3">Brands</h3>
+                <div className="space-y-2">
+                  {availableBrands.map((brand) => (
+                    <div key={brand} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`brand-${brand}`}
+                        checked={selectedBrands.includes(brand)}
+                        onCheckedChange={(checked) => 
+                          handleBrandChange(brand, Boolean(checked))
+                        }
+                        disabled={isPending || isLoading}
+                      />
+                      <label htmlFor={`brand-${brand}`} className="text-sm font-medium">
+                        {brand}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            <Button variant="outline" onClick={handleClearFilters} disabled={isPending || isLoading}>
+              Clear Filters
+            </Button>
           </aside>
 
           <div className="md:col-span-3">

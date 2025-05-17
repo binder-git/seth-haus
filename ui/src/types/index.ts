@@ -14,7 +14,16 @@ export type {
 export type {
   Product,
   ProductResponse,
-  ProductDetailResponse
+  ProductDetailResponse,
+  ProductVariant,
+  Category,
+  ProductBrand,
+  ProductPricing
+} from './models/product';
+
+export {
+  validateCategory,
+  validateBrand
 } from './models/product';
 
 // Export shipping types

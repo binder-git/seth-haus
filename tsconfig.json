@@ -1,15 +1,16 @@
 {
+  "extends": "./tsconfig.base.json",
   "compilerOptions": {
-    "composite": true,
-    "skipLibCheck": true,
-    "module": "esnext",
-    "moduleResolution": "node",
-    "esModuleInterop": true,
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
-    "allowSyntheticDefaultImports": true
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./netlify/functions/src/*"],
+      "@ui/*": ["./ui/src/*"]
+    },
+    "typeRoots": [
+      "./node_modules/@types",
+      "./netlify/functions/node_modules/@types"
+    ]
   },
-  "include": [],
   "references": [
     { "path": "./ui/tsconfig.json" },
     { "path": "./tsconfig.functions.json" }

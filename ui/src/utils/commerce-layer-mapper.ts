@@ -34,17 +34,29 @@ export const mapCommerceLayerProductToAppProduct = (
     formatted: '0.00'
   };
 
+  // Get the first image URL for backward compatibility
+  const firstImageUrl = clProduct.images?.[0]?.url ?? clProduct.image_url ?? '';
+  
   // Map product fields with null checks
   return {
     id: clProduct.id ?? '',
-    code: clProduct.code ?? '', // Added mapping for SKU code
+    code: clProduct.code ?? '', // SKU code
     name: clProduct.name ?? 'Unnamed Product',
     description: clProduct.description ?? '',
-    image: clProduct.image_url || (clProduct.images?.[0]?.url ?? ''), // Keep existing image logic as a fallback or primary display
-    image_url: clProduct.image_url ?? '', // Ensure image_url is populated for ProductItemCard
+    price: clProduct.price?.amount_float ?? 0, // Price from the first price object
+    currency: clProduct.price?.currency_code ?? currentMarket.currencyCode ?? 'EUR',
+    imageUrl: firstImageUrl, // For backward compatibility
+    image_url: firstImageUrl, // For backward compatibility
+    // Use the first image from the images array if available, otherwise fall back to image_url
+    images: clProduct.images && clProduct.images.length > 0 
+      ? clProduct.images.map(img => img.url).filter((url): url is string => Boolean(url))
+      : clProduct.image_url 
+        ? [clProduct.image_url] 
+        : [],
+    sku: clProduct.code ?? '', // Use code as SKU
     category: validateCategory(clProduct.category),
     brand: validateBrand(getAttributeValue('brand')),
-    available: clProduct.available ?? true, // Default to true if undefined, for safety
+    inStock: clProduct.available ?? true, // Map available to inStock
     rating: parseFloat(getAttributeValue('rating') ?? '0'),
     new: getAttributeValue('new') === 'true',
     bestSeller: getAttributeValue('best_seller') === 'true',
