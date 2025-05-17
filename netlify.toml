@@ -1,21 +1,23 @@
-# This section defines build settings for your site.
+# Global build settings
 [build]
   # Install dependencies and build the entire project
   command = "npm install && npm run build"
-
-  # The directory (relative to the root of your project) that contains the deploy-ready
-  # assets after the build command completes. For Vite/React, this is usually 'ui/dist'.
   publish = "ui/dist"
-
-  # The base directory where your Netlify serverless functions will reside.
   functions = "netlify/functions/dist"
+  
+  # Environment variables for build process
+  [build.environment]
+    NODE_VERSION = "18"
+    NPM_FLAGS = "--prefix=netlify/functions"
   
   # Function configuration
   [functions]
     node_bundler = "esbuild"
     external_node_modules = ["@commercelayer/sdk"]
-    # Point to the built functions directory
     directory = "netlify/functions/dist"
+    node_module_format = "esm"
+    sourcemap = true
+    node_version = "18"
 
 # Proxy API requests to Netlify Functions - must come before the catch-all
 [[redirects]]
@@ -24,12 +26,28 @@
   status = 200
   force = true
 
-# Explicit redirect for featured-products
+# Explicit redirects for functions
 [[redirects]]
-  from = "/functions/featured-products"
+  from = "/.netlify/functions/featured-products"
   to = "/.netlify/functions/featured-products"
   status = 200
   force = true
+
+[[redirects]]
+  from = "/.netlify/functions/commerce-layer-auth"
+  to = "/.netlify/functions/commerce-layer-auth"
+  status = 200
+  force = true
+
+# CORS configuration for API endpoints
+[[headers]]
+  for = "/.netlify/functions/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Headers = "Content-Type, Authorization, X-Requested-With"
+    Access-Control-Allow-Methods = "GET, POST, OPTIONS"
+    Access-Control-Allow-Credentials = "true"
+    Access-Control-Max-Age = "86400"
 
 # This rule ensures that any direct navigation to a frontend route (e.g., /products-page)
 # is handled by your React app's router (by serving index.html).
@@ -39,6 +57,33 @@
   from = "/*"
   to = "/index.html"
   status = 200 # A 200 status indicates a rewrite (serve this file) not a 301/302 redirect.
+
+# Security headers for all responses
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Content-Security-Policy = """
+      default-src 'self';
+      script-src 'self' 'unsafe-inline' 'unsafe-eval' cdn.jsdelivr.net;
+      style-src 'self' 'unsafe-inline';
+      img-src 'self' data: https:;
+      font-src 'self';
+      connect-src 'self' *.commercelayer.io *.commercelayer.co *.commercelayer.com;
+      frame-ancestors 'none';
+      base-uri 'self';
+      form-action 'self';
+      object-src 'none';
+    """
+
+# Cache control for static assets
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
 
 # Environment variables configuration
 [context.production.environment]
@@ -53,6 +98,7 @@
   COMMERCE_LAYER_UK_SKU_LIST_ID = "${COMMERCE_LAYER_UK_SKU_LIST_ID}"
   
   # App Configuration
+  NODE_ENV = "production"
   APP_TITLE = "Seth's Triathlon Haus"
   APP_ID = "seths-triathlon-haus"
   
@@ -60,8 +106,15 @@
   API_URL = "https://seth-haus.netlify.app/.netlify/functions"
   WS_API_URL = "wss://seth-haus.netlify.app"
 
-[context.development.environment]
-  # Commerce Layer Configuration - Development
+[context.development]
+  command = "npm run dev"
+  [context.development.environment]
+    # Development Environment
+    NODE_ENV = "development"
+    NETLIFY_DEV_URL = "http://localhost:9999"
+    
+    # Commerce Layer Configuration - Development
+    COMMERCE_LAYER_DOMAIN = "commercelayer.io"
   COMMERCE_LAYER_CLIENT_ID = "3uRXduKWJ8qr4G7lUBdrC1GFormL5Qa-RbFy-eCIGtA"
   COMMERCE_LAYER_CLIENT_SECRET = "REMOVED"
   COMMERCE_LAYER_ORGANIZATION = "seth-s-triathlon-haus"

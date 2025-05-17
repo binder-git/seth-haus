@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import brain from "@/brain";
+import type { RequestParams } from "@/brain/http-client";
 import type { 
   ProductDetailResponse, 
   ProductResponse,
@@ -26,14 +27,17 @@ import { Separator } from "@/components/ui/separator";
 
 // Extend the BrainClient type to include the get method
 declare module "@/brain/Brain" {
-  interface Brain<T = unknown> {
+  interface Brain<SecurityDataType = unknown> {
     /**
      * Make a GET request to the specified URL
      * @template T Expected response data type
      * @param url The URL to make the request to
      * @returns Promise with the response data
      */
-    get: <T = unknown>(url: string) => Promise<{ data: T }>;
+    get: <T = unknown>(
+      url: string,
+      params?: RequestParams
+    ) => Promise<{ data: T }>;
   }
 }
 

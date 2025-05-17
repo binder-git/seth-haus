@@ -1,20 +1,31 @@
 {
   "compilerOptions": {
+    /* Base Options */
     "target": "ESNext",
-    "useDefineForClassFields": true,
     "lib": ["DOM", "DOM.Iterable", "ESNext"],
-    "allowJs": true,
+    "module": "ESNext",
+    "moduleResolution": "NodeNext",
+    "jsx": "react-jsx",
+    "strict": true,
     "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "allowJs": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
-    "module": "ESNext",
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
     "isolatedModules": true,
-    "noEmit": true,
-    "jsx": "react-jsx",
+    "resolveJsonModule": true,
+    "composite": true,
+    "useDefineForClassFields": true,
+    
+    /* Emit */
+    "noEmit": false,
+    "emitDeclarationOnly": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "outDir": "./dist",
+    
+    /* Paths */
     "baseUrl": ".",
     "types": ["vite/client", "node"],
     "paths": {
@@ -27,15 +38,17 @@
       "pages/*": ["./src/pages/*"],
       "types": ["./src/types/index"],
       "types/*": ["./src/types/*"],
-      "@/components/ui/*": ["./src/extensions/shadcn/components/*.tsx", "./src/extensions/shadcn/components/*.ts"],
-      "@/hooks/use-toast": ["./src/extensions/shadcn/hooks/use-toast.ts"],
-      "@/components/ui/toast": ["./src/extensions/shadcn/components/toast.tsx"]
-    },
-    "composite": true,
-    "outDir": "./dist",
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true
+      "@/components/ui/*": [
+        "./src/extensions/shadcn/components/*.tsx",
+        "./src/extensions/shadcn/components/*.ts"
+      ],
+      "@/hooks/use-toast": [
+        "./src/extensions/shadcn/hooks/use-toast.ts"
+      ],
+      "@/components/ui/toast": [
+        "./src/extensions/shadcn/components/toast.tsx"
+      ]
+    }
   },
   "include": [
     "src",

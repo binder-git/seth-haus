@@ -1,24 +1,87 @@
-# Netlify Functions for Commerce Layer Authentication
+# Netlify Functions for Commerce Layer
 
 ## Overview
-These Netlify Functions provide secure authentication and API interaction for the Commerce Layer integration.
+These Netlify Functions provide secure authentication and API interaction for the Commerce Layer integration, built with TypeScript and ES Modules.
 
-## Authentication Function
+## Available Functions
 
-### `commerce_layer_auth.py`
+### `commerce-layer-auth`
 
 #### Purpose
-Provides comprehensive authentication and token validation for Commerce Layer integration.
+Handles authentication with Commerce Layer's OAuth server and provides access tokens.
 
 #### Key Features
-- Token validation against Commerce Layer
-- Secure handling of authentication credentials
-- Flexible user information extraction
-- Market-based access control
+- Secure token generation
+- Environment variable validation
+- Error handling
+- CORS support
 
 #### Environment Variables
 Required environment variables:
-- `COMMERCE_LAYER_TOKEN_VALIDATION_URL`: Commerce Layer token validation endpoint
+- `COMMERCE_LAYER_CLIENT_ID`: Your Commerce Layer client ID
+- `COMMERCE_LAYER_CLIENT_SECRET`: Your Commerce Layer client secret
+- `COMMERCE_LAYER_ORGANIZATION`: Your Commerce Layer organization slug
+- `COMMERCE_LAYER_DOMAIN`: Your Commerce Layer domain (e.g., `commercelayer.io`)
+
+### `featured-products`
+
+#### Purpose
+Fetches featured products from Commerce Layer based on the specified market.
+
+#### Key Features
+- Market-based product filtering
+- Product data transformation
+- Error handling
+- CORS support
+
+#### Query Parameters
+- `market`: The market code (e.g., `eu` or `uk`)
+
+## Development
+
+### Prerequisites
+- Node.js 18+
+- npm 9+
+
+### Installation
+
+```bash
+# Install dependencies
+npm install
+
+# Build the project
+npm run build
+
+# Run in development mode
+npm run dev
+```
+
+### Environment Setup
+Create a `.env` file in the root of the functions directory with the required environment variables.
+
+## Deployment
+
+This project is configured to be deployed to Netlify. The build script will automatically compile the TypeScript code to JavaScript in the `dist` directory.
+
+## TypeScript
+
+This project uses TypeScript with strict type checking. The configuration is in `tsconfig.json`.
+
+## ES Modules
+
+All code is written using ES Modules syntax. The `package.json` has `"type": "module"` set to enable this.
+
+## Linting and Formatting
+
+This project includes TypeScript and ESLint for code quality. Run the following commands:
+
+```bash
+# Check for TypeScript errors
+npm run typecheck
+
+# Lint the code
+npm run lint
+```
 - Other Commerce Layer authentication credentials
 
 #### Dependencies

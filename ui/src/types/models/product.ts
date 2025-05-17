@@ -23,6 +23,7 @@ interface BaseProduct {
   price: number;
   currency: string;
   imageUrl: string;
+  image_url?: string; // For backward compatibility
   category: Category;
   brand: ProductBrand;
   sku: string;
@@ -34,9 +35,14 @@ interface BaseProduct {
   featured?: boolean;
   onSale?: boolean;
   bestSeller?: boolean;
+  new?: boolean; // For new product flag
   colors?: string[];
   sizes?: string[];
   pricing: ProductPricing;
+  // Additional properties for compatibility
+  images?: string[];
+  longDescription?: string;
+  specifications?: Record<string, string>;
 }
 
 export interface Product extends BaseProduct {

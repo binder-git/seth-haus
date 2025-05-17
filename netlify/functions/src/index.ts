@@ -1,8 +1,5 @@
-// This is the entry point for Netlify Functions
-// Export all function handlers here
+// Re-export all functions for Netlify
+import { handler as featuredProducts } from './featured-products';
+import { handler as commerceLayerAuth } from './commerce-layer-auth';
 
-export { handler as featuredProducts } from './featured-products-handler';
-
-// Export other handlers
-// export { handler as validateToken } from './validate-token';
-// export { handler as commerceLayerAuth } from './commerce-layer-auth';
+export { featuredProducts, commerceLayerAuth };
