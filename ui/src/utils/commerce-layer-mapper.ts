@@ -1,5 +1,5 @@
 import { Category, Market, MarketConfig, MarketName, Product, ProductBrand, ProductPricing, validateBrand, validateCategory } from '@/types';
-import { CommerceLayerProduct, ProductImage, ProductAttribute } from "./commerce-layer-service";
+import { CommerceLayerProduct, ProductImage, ProductAttribute } from './commerce-layer-service';
 
 // Map Commerce Layer product to our app's product format
 export const mapCommerceLayerProductToAppProduct = (

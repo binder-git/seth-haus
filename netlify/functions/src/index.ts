@@ -1,5 +1,11 @@
-// Re-export all functions for Netlify
-import { handler as featuredProducts } from './featured-products';
-import { handler as commerceLayerAuth } from './commerce-layer-auth';
+// netlify/functions/src/index.ts
+import featuredProducts from './featured-products.js';
+import commerceLayerAuth from './commerce-layer-auth.js';
+import test from './test.js';
 
-export { featuredProducts, commerceLayerAuth };
+// Export handlers with their paths
+export default {
+  'featured-products': featuredProducts,
+  'commerce-layer-auth': commerceLayerAuth,
+  'test': test
+};

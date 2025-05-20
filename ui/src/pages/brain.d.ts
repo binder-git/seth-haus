@@ -1,2 +1,2 @@
-import brain from "../brain";
+import brain from '../brain/index';
 export default brain;

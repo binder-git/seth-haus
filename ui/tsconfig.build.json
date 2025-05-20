@@ -1,27 +1,41 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "noEmit": false,
     "outDir": "./dist",
     "declaration": true,
     "emitDeclarationOnly": true,
-    "allowImportingTsExtensions": true
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "noEmit": false,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "pages/*": ["./src/pages/*"],
+      "types": ["./src/types/index"],
+      "types/*": ["./src/types/*"],
+      "utils/*": ["./src/utils/*"],
+      "components/*": ["./src/components/*"],
+      "hooks/*": ["./src/hooks/*"],
+      "services/*": ["./src/services/*"],
+      "contexts/*": ["./src/contexts/*"]
+    }
   },
   "include": [
     "src/**/*.ts",
     "src/**/*.tsx",
     "src/**/*.d.ts",
-    "src/fonts.json"
+    "vite.config.ts"
   ],
   "exclude": [
     "node_modules",
     "dist",
     "build",
     "**/__tests__/*",
-    "**/*.test.ts",
-    "**/*.test.tsx",
-    "**/*.spec.ts",
-    "**/*.spec.tsx",
+    "**/*.test.*",
+    "**/*.spec.*",
     "src/setupTests.ts"
   ]
 }

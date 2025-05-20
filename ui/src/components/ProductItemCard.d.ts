@@ -1,5 +1,5 @@
 import React from "react";
-import { ProductResponse } from "../brain/data-contracts";
+import { ProductResponse } from '../brain/data-contracts';
 export interface Props {
     product: ProductResponse;
     className?: string;

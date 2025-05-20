@@ -1,7 +1,7 @@
 import React from "react"; 
 import { Link, useNavigate } from "react-router-dom";
-import { MarketSwitcher } from "./MarketSwitcher";
-import { useAppContext } from "./AppProvider";
+import { MarketSwitcher } from './MarketSwitcher';
+import { useAppContext } from './AppProvider';
 import { Market } from "@/types";
 
 interface SimpleHeaderProps {

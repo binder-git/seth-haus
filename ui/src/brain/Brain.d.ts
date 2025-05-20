@@ -1,5 +1,5 @@
-import { CommerceLayerHealthCheckData, GetCommerceLayerProductsParams, GetFeaturedProductsParams, GetProductDetailsParams, TokenRequest } from "./data-contracts";
-import { HttpClient, RequestParams } from "./http-client";
+import { CommerceLayerHealthCheckData, GetCommerceLayerProductsParams, GetFeaturedProductsParams, GetProductDetailsParams, TokenRequest } from './data-contracts';
+import { HttpClient, RequestParams } from './http-client';
 export declare class Brain<SecurityDataType = unknown> extends HttpClient<SecurityDataType> {
     constructor(config?: {
         baseUrl?: string;

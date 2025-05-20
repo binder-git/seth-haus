@@ -1,12 +1,11 @@
 import React, { createContext, useContext, useState, useEffect, useRef, useMemo } from "react";
 import { toast, Toaster } from "sonner";
 import { TooltipProvider } from "@/extensions/shadcn/components/tooltip";
-import { SimpleFooter } from "./SimpleFooter";
-import SimpleHeader from "./SimpleHeader";
+import { SimpleFooter } from './SimpleFooter';
+import SimpleHeader from './SimpleHeader';
 import { CLCoreConfigResponse, TokenResponse, Market } from "@/types";
 import { useMarketStore } from "@/utils/market-store";
 import { API } from "@/config";
-import { NetlifyBrainProvider } from "@/contexts/NetlifyBrainContext";
 
 // --- Context Definition ---
 export interface AppContextProps {
@@ -53,7 +52,7 @@ export const AppProvider = ({ children }: AppProviderProps): React.ReactElement 
   const [v2ConfigReady, setV2ConfigReady] = useState(false);
 
   const clScriptRef = useRef<HTMLScriptElement | null>(null);
-  const { market = { name: 'UK', region: 'uk', id: 'uk-market', countryCode: 'GB', currencyCode: 'GBP' } } = useMarketStore();
+  const { market } = useMarketStore();
 
   // Check if we're in development mode
   const isDev = import.meta.env.MODE === 'development';
@@ -80,29 +79,14 @@ export const AppProvider = ({ children }: AppProviderProps): React.ReactElement 
       setMarketIdMap(coreConfig.marketIdMap);
       setOrganization(coreConfig.organization);
       setConfigReady(true);
-
-      // Load Commerce Layer script
-      if (!clScriptRef.current) {
-        const script = document.createElement('script');
-        script.src = 'https://cdn.jsdelivr.net/npm/@commercelayer/drop-in.js@2/dist/drop-in/drop-in.esm.js';
-        script.type = 'module';
-        script.async = true;
-        script.onload = () => {
-          setClScriptReady(true);
-          if (isDev) {
-            console.log('[AppProvider] Commerce Layer script loaded');
-          }
-        };
-        script.onerror = (error) => {
-          setError('Failed to load Commerce Layer script');
-          console.error('[AppProvider] Error loading Commerce Layer script:', error);
-        };
-        document.head.appendChild(script);
-        clScriptRef.current = script;
+      setClScriptReady(true); // Mark as ready since we're using the other initialization method
+      
+      if (isDev) {
+        console.log('[AppProvider] Using centralized Commerce Layer initialization');
       }
     } catch (error) {
-      setError('Failed to initialize Commerce Layer');
-      console.error('[AppProvider] Error initializing Commerce Layer:', error);
+      setError('Failed to initialize Commerce Layer configuration');
+      console.error('[AppProvider] Error initializing Commerce Layer configuration:', error);
     }
   };
 
@@ -161,19 +145,17 @@ export const AppProvider = ({ children }: AppProviderProps): React.ReactElement 
   ]);
 
   return (
-    <NetlifyBrainProvider>
-      <AppContext.Provider value={value}>
-        <TooltipProvider>
-          <div className="flex flex-col min-h-screen">
-            <SimpleHeader selectedMarket={market} onMarketChange={setMarket} />
-            <main className="flex-grow">
-              {children}
-            </main>
-            <SimpleFooter />
-            <Toaster position="bottom-right" />
-          </div>
-        </TooltipProvider>
-      </AppContext.Provider>
-    </NetlifyBrainProvider>
+    <AppContext.Provider value={value}>
+      <TooltipProvider>
+        <div className="flex flex-col min-h-screen">
+          <SimpleHeader selectedMarket={market} onMarketChange={setMarket} />
+          <main className="flex-grow">
+            {children}
+          </main>
+          <SimpleFooter />
+          <Toaster position="bottom-right" />
+        </div>
+      </TooltipProvider>
+    </AppContext.Provider>
   );
 };

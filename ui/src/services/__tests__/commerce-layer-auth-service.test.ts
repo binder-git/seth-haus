@@ -25,7 +25,18 @@ describe('CommerceLayerAuthService', () => {
 
       const token = await CommerceLayerAuthService.getAccessToken();
       
-      expect(token).toEqual(mockTokenResponse);
+      // Verify the response has the expected structure, ignoring the dynamic acquired_at field
+      expect(token).toMatchObject({
+        access_token: 'test_access_token',
+        expires_in: 3600,
+        token_type: 'bearer',
+        scope: 'market:all'
+      });
+      
+      // Verify acquired_at is a number if it exists
+      if ('acquired_at' in token) {
+        expect(typeof token.acquired_at).toBe('number');
+      }
       expect(mockedAxios.post).toHaveBeenCalledWith(
         '/.netlify/functions/commerce-layer-auth',
         {},

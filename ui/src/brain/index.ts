@@ -1,6 +1,7 @@
-import { API_PATH } from "../constants";
-import { Brain } from "./Brain";
-import type { RequestParams } from "./http-client";
+import { API_PATH } from '../constants/index';
+import { Brain } from './Brain';
+import { NetlifyBrain } from "./NetlifyBrain";
+import type { RequestParams } from './http-client';
 
 const isLocalhost = /localhost:\d{4}/i.test(window.location.origin);
 
@@ -10,22 +11,27 @@ const constructBaseUrl = (): string => {
 
 type BaseApiParams = Omit<RequestParams, "signal" | "baseUrl" | "cancelToken">;
 
-const constructBaseApiParams = (): BaseApiParams => {
+function constructBaseApiParams(): BaseApiParams {
   return {
-    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
   };
-};
+}
 
-const constructClient = () => {
-  const baseUrl = constructBaseUrl();
-  const baseApiParams = constructBaseApiParams();
-
+function constructClient() {
+  const baseUrl = isLocalhost ? constructBaseUrl() : "https://seth-haus.netlify.app";
   return new Brain({
     baseUrl,
-    baseApiParams,
+    baseApiParams: {
+      ...constructBaseApiParams(),
+      credentials: 'include',
+    },
   });
-};
+}
 
 const brain = constructClient();
+const netlifyBrain = new NetlifyBrain();
 
+export { netlifyBrain };
 export default brain;

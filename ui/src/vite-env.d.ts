@@ -9,7 +9,7 @@ interface ImportMetaEnv {
   
   // Commerce Layer
   readonly COMMERCE_LAYER_CLIENT_ID: string;
-  readonly COMMERCE_LAYER_CLIENT_SECRET: string;
+  readonly COMMERCE_LAYER_CLIENT_SECRET?: string;
   readonly COMMERCE_LAYER_ORGANIZATION: string;
   readonly COMMERCE_LAYER_DOMAIN: string;
   readonly COMMERCE_LAYER_EU_SCOPE: string;
@@ -19,13 +19,19 @@ interface ImportMetaEnv {
   
   // App Configuration
   readonly APP_TITLE: string;
-  readonly APP_ID: string;
-  readonly APP_FAVICON_LIGHT: string;
-  readonly APP_FAVICON_DARK: string;
+  readonly APP_ID?: string;
+  readonly APP_FAVICON_LIGHT?: string;
+  readonly APP_FAVICON_DARK?: string;
   
   // API Configuration
   readonly API_URL: string;
-  readonly WS_API_URL: string;
+  readonly WS_API_URL?: string;
+}
+
+declare global {
+  namespace NodeJS {
+    interface ProcessEnv extends ImportMetaEnv {}
+  }
 }
 
 interface ImportMeta {

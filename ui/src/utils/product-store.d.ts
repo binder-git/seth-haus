@@ -1,5 +1,5 @@
 import { Market, Product } from '@/types';
-import { ProductResponse } from "../brain/data-contracts";
+import { ProductResponse } from '../brain/data-contracts';
 interface ProductState {
     products: ProductResponse[];
     isLoading: boolean;

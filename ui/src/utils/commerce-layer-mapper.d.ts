@@ -1,5 +1,5 @@
 import { Market, Product } from '@/types';
-import { CommerceLayerProduct } from "./commerce-layer-service";
+import { CommerceLayerProduct } from './commerce-layer-service';
 export declare const mapCommerceLayerProductToAppProduct: (clProduct: CommerceLayerProduct, currentMarket: Market) => Product;
 export declare const groupProductsByCategory: (products: Product[]) => {
     [category: string]: Product[];

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge"; // Import Badge for availability
 import { cn } from "utils/cn";
-import { ProductResponse } from "../brain/data-contracts";
+import { ProductResponse } from '../brain/data-contracts';
 
 export interface Props {
   product: ProductResponse;
@@ -17,10 +17,22 @@ const ProductItemCardComponent = ({ product, className = "", onViewDetailsClick 
 // Removed market store import (not needed for CL component)
 // Removed isAdding state and handleAddToCart function
 
-  // Use a default placeholder if imageUrl is missing or invalid
-  const imageUrl = product.image_url && product.image_url.startsWith('http') 
-                 ? product.image_url 
-                 : 'https://via.placeholder.com/300x300?text=No+Image'; // Placeholder adjusted slightly
+  // Determine the image URL, supporting both remote and local paths
+  const getImageUrl = () => {
+    if (!product.image_url) {
+      return 'https://via.placeholder.com/300x300?text=No+Image';
+    }
+    
+    // If it's a full URL or a local path starting with /migrated-assets/
+    if (product.image_url.startsWith('http') || product.image_url.startsWith('/migrated-assets/')) {
+      return product.image_url;
+    }
+    
+    // If it's a relative path that doesn't start with /migrated-assets/, assume it's in the public folder
+    return `/${product.image_url.replace(/^\//, '')}`;
+  };
+  
+  const imageUrl = getImageUrl();
 
   // Handle potential image loading errors
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
@@ -44,7 +56,14 @@ const ProductItemCardComponent = ({ product, className = "", onViewDetailsClick 
             src={imageUrl}
             alt={product.name || 'Product image'}
             className="w-full h-48 object-cover" // Fixed height for consistency
-            onError={handleImageError}
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              // Only fall back to placeholder if the URL wasn't already a placeholder
+              if (!target.src.includes('via.placeholder.com')) {
+                target.onerror = null; // Prevent infinite loop
+                target.src = 'https://via.placeholder.com/300x300?text=Image+Error';
+              }
+            }}
             loading="lazy" // Add lazy loading for performance
           />
         </div>

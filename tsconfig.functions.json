@@ -18,6 +18,8 @@
   ],
   "exclude": [
     "node_modules",
+    "netlify/functions/dist",
+    "**/dist",
     "**/*.spec.ts",
     "**/*.test.ts",
     "**/*.d.ts"
