@@ -15,6 +15,25 @@ const localStorageMock = (() => {
   };
 })();
 
+// Mock environment variables
+const envMock = {
+  VITE_COMMERCE_LAYER_CLIENT_ID: 'test-client-id',
+  VITE_COMMERCE_LAYER_CLIENT_SECRET: 'test-client-secret',
+  VITE_COMMERCE_LAYER_BASE_URL: 'https://test.api.commercelayer.io',
+  VITE_COMMERCE_LAYER_AUTH_URL: 'https://test.auth.commercelayer.io/oauth/token',
+};
+
+// Mock import.meta.env
+Object.defineProperty(global, 'import', {
+  value: {
+    meta: {
+      env: envMock,
+    },
+  },
+  configurable: true,
+});
+
+// Mock window.localStorage
 Object.defineProperty(window, 'localStorage', {
   value: localStorageMock,
 });

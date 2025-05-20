@@ -1,5 +1,5 @@
 import { Market, MarketName } from '@/types';
-import { ProductResponse, ProductPrice, ProductImage, ProductAttribute } from "../brain/data-contracts";
+import { ProductResponse, ProductPrice, ProductImage, ProductAttribute } from '../brain/data-contracts';
 export type CommerceLayerProduct = ProductResponse;
 export type { ProductPrice, ProductImage, ProductAttribute };
 export interface ProductsResponse {

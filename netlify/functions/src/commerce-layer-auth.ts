@@ -4,7 +4,7 @@ import type {
   HandlerEvent,
   HandlerContext,
   TokenResponse
-} from './types';
+} from './types.js';
 
 // Import dependencies
 import axios from 'axios';
@@ -58,20 +58,27 @@ const commerceLayerAuthHandler = async (
     const organization = getEnvVar('COMMERCE_LAYER_ORGANIZATION');
     const domain = getEnvVar('COMMERCE_LAYER_DOMAIN');
 
-    // Request access token from Commerce Layer using centralized auth endpoint
+    // Request access token from Commerce Layer's auth endpoint
+    const authUrl = 'https://auth.commercelayer.io/oauth/token';
+    console.log(`[Commerce Layer Auth] Requesting token from: ${authUrl}`);
+    
     const tokenResponse = await axios({
       method: 'post',
-      url: 'https://auth.commercelayer.io/oauth/token',
+      url: authUrl,
       data: {
         grant_type: 'client_credentials',
         client_id: clientId,
-        client_secret: clientSecret
+        client_secret: clientSecret,
+        // Request scopes for both markets
+        scope: `market:${process.env.COMMERCE_LAYER_EU_SCOPE} market:${process.env.COMMERCE_LAYER_UK_SCOPE}`
       },
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json'
       }
     });
+    
+    console.log('[Commerce Layer Auth] Token response received');
 
     // Return the token securely
     return {
@@ -107,5 +114,5 @@ const commerceLayerAuthHandler = async (
   }
 };
 
-// Export the handler
-export { commerceLayerAuthHandler as handler };
+// Export the handler as default for ES modules
+export default commerceLayerAuthHandler;

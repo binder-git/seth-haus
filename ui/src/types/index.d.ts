@@ -1,2 +1,2 @@
 export * from './api/data-contracts';
-export * from './models';
+export * from './models/index';

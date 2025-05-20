@@ -1,62 +1,45 @@
 {
   "compilerOptions": {
-    /* Base Options */
     "target": "ESNext",
-    "lib": ["DOM", "DOM.Iterable", "ESNext"],
     "module": "ESNext",
-    "moduleResolution": "NodeNext",
-    "jsx": "react-jsx",
-    "strict": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "allowJs": true,
+    "moduleResolution": "node",
     "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "isolatedModules": true,
-    "resolveJsonModule": true,
-    "composite": true,
-    "useDefineForClassFields": true,
-    
-    /* Emit */
-    "noEmit": false,
-    "emitDeclarationOnly": true,
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
-    "outDir": "./dist",
-    
-    /* Paths */
+    "strict": true,
+    "jsx": "react-jsx",
+    "jsxImportSource": "react",
     "baseUrl": ".",
-    "types": ["vite/client", "node"],
     "paths": {
       "@/*": ["./src/*"],
-      "components/*": ["./src/components/*"],
-      "utils/*": ["./src/utils/*"],
-      "hooks/*": ["./src/hooks/*"],
-      "contexts/*": ["./src/contexts/*"],
-      "services/*": ["./src/services/*"],
       "pages/*": ["./src/pages/*"],
       "types": ["./src/types/index"],
       "types/*": ["./src/types/*"],
+      "utils/*": ["./src/utils/*"],
+      "components/*": ["./src/components/*"],
+      "hooks/*": ["./src/hooks/*"],
+      "services/*": ["./src/services/*"],
+      "contexts/*": ["./src/contexts/*"],
       "@/components/ui/*": [
         "./src/extensions/shadcn/components/*.tsx",
         "./src/extensions/shadcn/components/*.ts"
       ],
-      "@/hooks/use-toast": [
-        "./src/extensions/shadcn/hooks/use-toast.ts"
-      ],
-      "@/components/ui/toast": [
-        "./src/extensions/shadcn/components/toast.tsx"
-      ]
-    }
+      "@/hooks/use-toast": ["./src/extensions/shadcn/hooks/use-toast.ts"],
+      "@/components/ui/toast": ["./src/extensions/shadcn/components/toast.tsx"],
+      "@/config/*": ["./src/config/*"]
+    },
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "allowJs": true,
+    "types": ["node", "vite/client"],
+    "lib": ["DOM", "DOM.Iterable", "ESNext"]
   },
-  "include": [
-    "src",
-    "src/**/*.d.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "build"
+  "include": ["src", "src/**/*.d.ts", "vite.config.ts"],
+  "exclude": ["node_modules", "dist", "build"],
+  "references": [
+    {
+      "path": "./tsconfig.node.json"
+    }
   ]
 }

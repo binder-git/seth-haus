@@ -21,10 +21,10 @@ export {
   APP_ID,
   WS_API_URL,
 } from "../constants";
-export type { Mode } from '../constants';
-export * from "./auth";
+export type { Mode } from '../constants/index';
+export * from './auth/index';
 
-import brain from "../brain";
+import brain from '../brain/index';
 export const backend = brain;
 
-// export * as types from "../brain/data-contracts";
+// export * as types from '../brain/data-contracts';

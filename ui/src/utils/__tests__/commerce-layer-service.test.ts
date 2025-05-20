@@ -78,7 +78,14 @@ describe('Commerce Layer Service', () => {
         data: { products: mockProducts }
       });
 
-      const products = await getCommerceLayerProducts({ name: 'EU', region: 'eu', id: 'eu-market', countryCode: 'EU', currencyCode: 'EUR' });
+      const products = await getCommerceLayerProducts({ 
+        name: 'EU', 
+        region: 'eu', 
+        id: 'market:id:qjANwhQrJg', 
+        countryCode: 'EU', 
+        currencyCode: 'EUR',
+        scope: 'market:id:qjANwhQrJg'
+      });
       
       expect(products).toEqual(mockProducts);
       expect(mockBrainInstance.get_commerce_layer_products).toHaveBeenCalledWith({ market: 'EU' });
@@ -88,7 +95,14 @@ describe('Commerce Layer Service', () => {
       // Simulate Commerce Layer API failure
       mockBrainInstance.get_commerce_layer_products.mockRejectedValue(new Error('API Error'));
 
-      const products = await getCommerceLayerProducts({ name: 'UK', region: 'uk', id: 'uk-market', countryCode: 'GB', currencyCode: 'GBP' });
+      const products = await getCommerceLayerProducts({ 
+        name: 'UK', 
+        region: 'uk', 
+        id: 'market:id:vjzmJhvEDo', 
+        countryCode: 'GB', 
+        currencyCode: 'GBP',
+        scope: 'market:id:vjzmJhvEDo'
+      });
       
       expect(products).toEqual([]);
     });
@@ -106,11 +120,25 @@ describe('Commerce Layer Service', () => {
         data: { products: mockProducts }
       });
 
-      await getCommerceLayerProducts({ name: 'EU', region: 'eu', id: 'eu-market', countryCode: 'EU', currencyCode: 'EUR' });
+      await getCommerceLayerProducts({ 
+        name: 'EU', 
+        region: 'eu', 
+        id: 'market:id:qjANwhQrJg', 
+        scope: 'market:id:qjANwhQrJg',
+        countryCode: 'EU', 
+        currencyCode: 'EUR' 
+      });
       expect(productCache['EU']).toEqual(mockProducts);
 
       // Clear cache for specific market
-      clearProductCache({ name: 'EU', region: 'eu', id: 'eu-market', countryCode: 'EU', currencyCode: 'EUR' });
+      clearProductCache({ 
+        name: 'EU', 
+        region: 'eu', 
+        id: 'market:id:qjANwhQrJg', 
+        scope: 'market:id:qjANwhQrJg',
+        countryCode: 'EU', 
+        currencyCode: 'EUR' 
+      });
       expect(productCache['EU']).toBeUndefined();
     });
 
@@ -120,8 +148,22 @@ describe('Commerce Layer Service', () => {
         data: { products: mockProducts }
       });
 
-      await getCommerceLayerProducts({ name: 'EU', region: 'eu', id: 'eu-market', countryCode: 'EU', currencyCode: 'EUR' });
-      await getCommerceLayerProducts({ name: 'UK', region: 'uk', id: 'uk-market', countryCode: 'GB', currencyCode: 'GBP' });
+      await getCommerceLayerProducts({ 
+        name: 'EU', 
+        region: 'eu', 
+        id: 'market:id:qjANwhQrJg', 
+        scope: 'market:id:qjANwhQrJg',
+        countryCode: 'EU', 
+        currencyCode: 'EUR' 
+      });
+      await getCommerceLayerProducts({ 
+        name: 'UK', 
+        region: 'uk', 
+        id: 'market:id:vjzmJhvEDo', 
+        scope: 'market:id:vjzmJhvEDo',
+        countryCode: 'GB', 
+        currencyCode: 'GBP' 
+      });
 
       expect(productCache['EU']).toEqual(mockProducts);
       expect(productCache['UK']).toEqual(mockProducts);

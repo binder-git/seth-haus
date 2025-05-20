@@ -13,26 +13,20 @@
     "npm": ">=8.0.0"
   },
   "scripts": {
-    "dev": "npm run dev --workspace=ui",
-    "build": "npm run build:functions && npm run build:ui",
-    "build:ui": "npm run build --workspace=ui",
-    "build:functions": "cd netlify/functions && npm install && npm run build",
-    "dev:functions": "cd netlify/functions && npm install && npm run dev",
-    "test": "npm run test --workspaces",
-    "lint": "npm run lint --workspaces",
-    "typecheck": "npm run typecheck --workspaces",
-    "prepare": "npm run build",
-    "clean": "rm -rf node_modules netlify/functions/node_modules netlify/functions/dist"
+    "dev": "netlify dev --live --port 8888",
+    "dev:ui": "cd ui && npm run dev",
+    "build": "npm run build:ui && npm run build:functions",
+    "build:ui": "cd ui && npm run build",
+    "build:functions": "cd netlify/functions && npm run build",
+    "start": "netlify dev"
   },
   "dependencies": {
-    "@commercelayer/sdk": "^6.41.0",
-    "@netlify/functions": "^3.1.8",
-    "axios": "^1.4.0"
+    "@commercelayer/sdk": "^6.41.0"
   },
   "devDependencies": {
-    "@tsconfig/node18": "^18.2.4",
+    "@netlify/functions": "^3.1.8",
     "@types/node": "^20.17.47",
-    "@types/node-fetch": "^2.6.12",
+    "netlify-cli": "^17.0.0",
     "typescript": "^5.1.3"
   }
 }

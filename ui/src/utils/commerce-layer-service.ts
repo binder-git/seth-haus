@@ -1,6 +1,6 @@
-import { Brain } from "../brain/Brain";
+import { Brain } from '../brain/Brain';
 import { Market, MarketName } from '@/types';
-import { ProductResponse, ProductPrice, ProductImage, ProductAttribute } from "../brain/data-contracts";
+import { ProductResponse, ProductPrice, ProductImage, ProductAttribute } from '../brain/data-contracts';
 
 // Alias for better readability
 export type CommerceLayerProduct = ProductResponse;

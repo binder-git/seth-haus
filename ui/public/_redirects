@@ -1,0 +1,5 @@
+# Netlify Settings for single page application
+/*    /index.html   200
+
+# Netlify Functions
+/.netlify/functions/*  /.netlify/functions/:splat  200

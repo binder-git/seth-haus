@@ -1,7 +1,7 @@
 import { useEffect } from "react";
-import { MessageEmitter } from "./Beacon";
-import { InternalErrorBoundary } from "./InternalErrorBoundary";
-import { UserErrorBoundary } from "./UserErrorBoundary";
+import { MessageEmitter } from './Beacon';
+import { InternalErrorBoundary } from './InternalErrorBoundary';
+import { UserErrorBoundary } from './UserErrorBoundary';
 
 interface Props {
   children: React.ReactNode;

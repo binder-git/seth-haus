@@ -8,17 +8,20 @@ import ProductDetailPage from "pages/ProductDetailPage";
 import Products from "pages/Products";
 import HomePage from "pages/HomePage";
 
+// Main app routes
+const appRoutes: RouteObject = {
+  path: "/",
+  element: <App />,
+  children: [
+    { index: true, element: <HomePage /> },
+    { path: "products", element: <Products /> },
+    { path: "faq-page", element: <FAQPage /> },
+    { path: "faqpage", element: <FAQPage /> },
+    { path: "product-detail-page", element: <ProductDetailPage /> },
+    { path: "productdetailpage", element: <ProductDetailPage /> },
+  ]
+};
+
 export const userRoutes: RouteObject[] = [
-  {
-    path: "/",
-    element: <App />,
-    children: [
-      { index: true, element: <HomePage /> },
-      { path: "products", element: <Products /> },
-      { path: "faq-page", element: <FAQPage /> },
-      { path: "faqpage", element: <FAQPage /> },
-      { path: "product-detail-page", element: <ProductDetailPage /> },
-      { path: "productdetailpage", element: <ProductDetailPage /> },
-    ]
-  }
+  appRoutes
 ];

@@ -15,7 +15,7 @@ import {
   GetProductDetailsParams,
   TokenRequest,
 } from "./data-contracts";
-import { ContentType, HttpClient, RequestParams } from "./http-client";
+import { ContentType, HttpClient, RequestParams } from './http-client';
 
 import { API } from '@/config';
 
