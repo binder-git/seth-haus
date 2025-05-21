@@ -17,15 +17,14 @@ import {
 } from "./data-contracts";
 import { ContentType, HttpClient, RequestParams } from './http-client';
 
-import { API } from '@/config';
-
 export class Brain<SecurityDataType = unknown> extends HttpClient<SecurityDataType> {
   constructor(config?: { baseUrl?: string; baseApiParams?: RequestParams }) {
     super({
-      baseUrl: config?.baseUrl || API.baseUrl,
+      baseUrl: config?.baseUrl,
       baseApiParams: { ...config?.baseApiParams, secure: true }
     });
   }
+  
   /**
    * @description Check health of application. Returns 200 when OK, 500 when not.
    *

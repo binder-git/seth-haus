@@ -1,13 +1,6 @@
-import { API_PATH } from '../constants/index';
+import { API_URL } from '../constants';
 import { Brain } from './Brain';
-import { NetlifyBrain } from "./NetlifyBrain";
 import type { RequestParams } from './http-client';
-
-const isLocalhost = /localhost:\d{4}/i.test(window.location.origin);
-
-const constructBaseUrl = (): string => {
-  return `${window.location.origin}${API_PATH}`;
-};
 
 type BaseApiParams = Omit<RequestParams, "signal" | "baseUrl" | "cancelToken">;
 
@@ -19,10 +12,10 @@ function constructBaseApiParams(): BaseApiParams {
   };
 }
 
-function constructClient() {
-  const baseUrl = isLocalhost ? constructBaseUrl() : "https://seth-haus.netlify.app";
+// Simplified client construction using the universal API_URL
+function createBrainClient() {
   return new Brain({
-    baseUrl,
+    baseUrl: API_URL, // Use the universal API_URL for your backend
     baseApiParams: {
       ...constructBaseApiParams(),
       credentials: 'include',
@@ -30,8 +23,6 @@ function constructClient() {
   });
 }
 
-const brain = constructClient();
-const netlifyBrain = new NetlifyBrain();
+const brain = createBrainClient();
 
-export { netlifyBrain };
-export default brain;
+export default brain; // This is the single, primary client instance

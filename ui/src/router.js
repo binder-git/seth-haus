@@ -1,11 +1,10 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { createBrowserRouter } from "react-router-dom";
-import { userRoutes } from "./user-routes.js";
+import { userRoutes } from "./user-routes";
 import NotFoundPage from "pages/NotFoundPage";
 import SomethingWentWrongPage from "pages/SomethingWentWrongPage";
-import { RootLayout } from "./components/RootLayout.js";
-import DebugPage from "pages/DebugPage";
-import TestPage from "pages/TestPage";
+import { RootLayout } from "./components/RootLayout.tsx";
+import DebugPage from "pages/DebugPage"; // Keep this if DebugPage still exists and is used elsewhere, otherwise remove too
 
 console.log('[Router] Configuring routes...');
 
@@ -19,10 +18,6 @@ const router = createBrowserRouter([
       {
         path: "debug",
         element: _jsx(DebugPage, {})
-      },
-      {
-        path: "test",
-        element: _jsx(TestPage, {})
       },
       // User routes
       ...userRoutes,

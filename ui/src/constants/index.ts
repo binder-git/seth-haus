@@ -10,11 +10,6 @@ export const API_URL = import.meta.env.API_URL || 'http://localhost:3000';
 export const API_PATH = '/api';
 export const WS_API_URL = import.meta.env.WS_API_URL || 'ws://localhost:3000';
 
-// Commerce Layer constants
-export const CL_CLIENT_ID = import.meta.env.COMMERCE_LAYER_CLIENT_ID;
-export const CL_ENDPOINT = `https://${import.meta.env.COMMERCE_LAYER_ORGANIZATION || 'seth-s-triathlon-haus'}.commercelayer.io`;
-export const CL_ORGANIZATION = import.meta.env.COMMERCE_LAYER_ORGANIZATION || 'seth-s-triathlon-haus';
-
 // Environment
 export type Mode = 'development' | 'production' | 'test';
 export const mode = (import.meta.env.MODE || 'development') as Mode;
