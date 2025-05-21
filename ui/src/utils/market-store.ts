@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 import { Market } from '@/types';
-import { updateMarketScope, updateCurrency } from '@/config/commerceLayer';
 
 // Market configurations
 const MARKETS = {
@@ -37,17 +36,13 @@ export const useMarketStore = create<MarketState>((set, get) => ({
   market: MARKETS.UK, // Default to UK market
   markets: MARKETS,
   setMarket: (market) => {
-    // Update Commerce Layer market scope when market changes
-    updateMarketScope(market.id);
-    updateCurrency(market.currencyCode);
+    // Update the market in the store
     set({ market });
   },
   switchMarket: (marketName) => {
     const market = MARKETS[marketName];
     if (market) {
-      // Update Commerce Layer market scope when switching markets
-      updateMarketScope(market.id);
-      updateCurrency(market.currencyCode);
+      // Update the market in the store
       set({ market });
     }
   },

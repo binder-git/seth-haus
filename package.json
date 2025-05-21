@@ -13,11 +13,12 @@
     "npm": ">=8.0.0"
   },
   "scripts": {
-    "dev": "netlify dev --live --port 8888",
-    "dev:ui": "cd ui && npm run dev",
-    "build": "npm run build:ui && npm run build:functions",
-    "build:ui": "cd ui && npm run build",
-    "build:functions": "cd netlify/functions && npm run build",
+    "dev": "netlify dev",
+    "dev:ui": "npm run dev --workspace=ui",
+    "dev:functions": "npm run dev --workspace=netlify/functions",
+    "build": "npm run build --workspace=ui && npm run build --workspace=netlify/functions",
+    "build:ui": "npm run build --workspace=ui",
+    "build:functions": "npm run build --workspace=netlify/functions",
     "start": "netlify dev"
   },
   "dependencies": {

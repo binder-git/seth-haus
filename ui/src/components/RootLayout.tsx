@@ -4,6 +4,7 @@ import { AppProvider } from './AppProvider';
 import { Head } from './Head';
 import { DEFAULT_THEME } from '../constants/index';
 import { DebugRouter } from './DebugRouter';
+import type { Theme } from './ThemeProvider';
 
 export function RootLayout() {
   return (

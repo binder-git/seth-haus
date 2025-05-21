@@ -1,50 +1,6 @@
-import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
-import { COMMERCE_LAYER_CONFIG, MARKETS, API_CONFIG } from '@/config/constants';
+import { MARKETS } from '@/config/constants';
 
-// Environment variables are loaded via import.meta.env in Vite
-
-// Type definitions for Commerce Layer API responses
-interface CommerceLayerSku {
-  id: string;
-  type: string;
-  code: string;
-  name: string;
-  description: string | null;
-  image_url: string | null;
-  relationships?: {
-    tags?: {
-      data: Array<{
-        id: string;
-        type: string;
-      }>;
-    };
-    prices?: {
-      data: Array<{
-        id: string;
-        type: string;
-      }>;
-    };
-    images?: {
-      data: Array<{
-        id: string;
-        type: string;
-      }>;
-    };
-  };
-  prices?: Array<{
-    id: string;
-    type: string;
-    currency_code: string;
-    formatted_amount: string;
-    amount_cents: number;
-  }>;
-  images?: Array<{
-    id: string;
-    type: string;
-    url: string;
-  }>;
-}
-
+// Frontend's expected Product interface
 export interface Product {
   id: string;
   code: string;
@@ -55,131 +11,40 @@ export interface Product {
   currency: string;
 }
 
-// Cache for access tokens by market
-const tokenCache: Record<string, { token: string; expiresAt: number }> = {};
-
 class CommerceLayerApi {
-  private client: AxiosInstance;
   private marketId: string;
 
   constructor(marketId: string = 'UK') {
     this.marketId = marketId;
-    
-    this.client = axios.create({
-      baseURL: API_CONFIG.baseUrl,
-      headers: {
-        'Accept': 'application/vnd.api+json',
-        'Content-Type': 'application/vnd.api+json',
-      },
-    });
-
-    // Add request interceptor for authentication
-    this.client.interceptors.request.use(
-      async (config) => {
-        // Skip for auth requests to avoid infinite loops
-        if (config.url?.includes('oauth/token')) {
-          return config;
-        }
-
-        const token = await this.getAccessToken();
-        config.headers.Authorization = `Bearer ${token}`;
-        return config;
-      },
-      (error) => {
-        return Promise.reject(error);
-      }
-    );
   }
 
   /**
-   * Get an access token for the current market
+   * Set the market for subsequent API calls
    */
-  private async getAccessToken(): Promise<string> {
-    const market = Object.values(MARKETS).find(m => m.id === this.marketId || m.name === this.marketId);
-    if (!market) {
-      throw new Error(`Market not found: ${this.marketId}`);
-    }
-
-    const cacheKey = market.id;
-    const cachedToken = tokenCache[cacheKey];
-    
-    // Return cached token if it's still valid (with 5 minute buffer)
-    if (cachedToken && cachedToken.expiresAt > Date.now() + 300000) {
-      return cachedToken.token;
-    }
-
-    // Get client credentials from environment variables
-    const clientId = import.meta.env.VITE_COMMERCE_LAYER_CLIENT_ID || '';
-    const clientSecret = import.meta.env.VITE_COMMERCE_LAYER_CLIENT_SECRET || '';
-
-    if (!clientId || !clientSecret) {
-      throw new Error('Missing Commerce Layer client credentials. Make sure to set VITE_COMMERCE_LAYER_CLIENT_ID and VITE_COMMERCE_LAYER_CLIENT_SECRET environment variables.');
-    }
-
-    try {
-      // Use the OAuth token endpoint from config with proper headers and body
-      const response = await axios.post(
-        API_CONFIG.authUrl,
-        {
-          grant_type: 'client_credentials',
-          client_id: clientId,
-          client_secret: clientSecret,
-          scope: market.scope // Include the market scope in the token request
-        },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          }
-        }
-      );
-
-      const { access_token, expires_in } = response.data;
-      
-      // Cache the token
-      tokenCache[cacheKey] = {
-        token: access_token,
-        expiresAt: Date.now() + (expires_in * 1000)
-      };
-
-      return access_token;
-    } catch (error) {
-      console.error('Error getting access token:', error);
-      throw new Error('Failed to authenticate with Commerce Layer');
-    }
+  setMarket(marketId: string): void {
+    this.marketId = marketId;
   }
 
   /**
-   * Get featured products for the current market
-   * @param category Optional category to filter products by tag
+   * Get featured products for the homepage
+   * Calls the 'featured-products' Netlify function
    */
   async getFeaturedProducts(category?: string): Promise<{ products: Product[] }> {
+    // Use a fixed URL for local function development, as netlify dev won't proxy.
+    // This assumes your function server runs on http://localhost:9999
+    const baseUrl = import.meta.env.DEV ? 'http://localhost:9999/.netlify/functions' : '';
+    
+    const params = new URLSearchParams({
+      market: this.marketId.toLowerCase(),
+      ...(category && { category })
+    });
+
     try {
-      type MarketType = {
-        id: string;
-        name: string;
-        skuListId?: string;
-        currencyCode?: string;
-        [key: string]: any;
-      };
-
-      const market = Object.values(MARKETS).find(m => m.id === this.marketId || m.name === this.marketId) as MarketType | undefined;
-      if (!market) {
-        throw new Error(`Market not found: ${this.marketId}`);
-      }
-
-      // Determine the base URL based on the environment
-      const isDev = import.meta.env.DEV;
-      const baseUrl = isDev ? 'http://localhost:9999' : '';
+      // The full path including /.netlify/functions/ is needed when NOT proxied by netlify dev
+      const url = `${baseUrl}/featured-products?${params.toString()}`;
+      console.log(`[CommerceLayerApi] Fetching featured products from: ${url}`);
       
-      // Build the query parameters
-      const params = new URLSearchParams({
-        market: market.name.toLowerCase(),
-        ...(category && { category })
-      });
-      
-      // Call our Netlify function to fetch products
-      const response = await fetch(`${baseUrl}/.netlify/functions/featured-products-direct?${params.toString()}`, {
+      const response = await fetch(url, {
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json'
@@ -188,48 +53,16 @@ class CommerceLayerApi {
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
+        console.error(`[CommerceLayerApi] API response not OK: ${response.status} ${response.statusText}`, errorData);
         throw new Error(errorData.message || `Failed to fetch products: ${response.statusText}`);
       }
 
       const responseData = await response.json();
+      console.log('[CommerceLayerApi] Raw responseData from Netlify function:', responseData);
+      // Keep looking for 'data' key based on past consistent behavior
+      console.log(`[CommerceLayerApi] responseData.data length: ${responseData.data?.length || 0}`);
       
-      // Extract products from the response
-      const productsData = responseData.products || [];
-      const included = responseData.included || [];
-      
-      if (!Array.isArray(productsData)) {
-        throw new Error('Invalid response format: products data is not an array');
-      }
-
-      // Create a map of included resources for easy lookup
-      const includedMap = included.reduce((acc: any, item: any) => {
-        if (!acc[item.type]) {
-          acc[item.type] = {};
-        }
-        acc[item.type][item.id] = item.attributes;
-        return acc;
-      }, {});
-
-      // Map the products to the expected format
-      const products = productsData.map((product: any) => ({
-        id: product.id,
-        type: product.type || 'skus',
-        attributes: {
-          code: product.attributes?.code || '',
-          name: product.attributes?.name || 'Unnamed Product',
-          description: product.attributes?.description || '',
-          image_url: product.attributes?.image_url || null,
-          price: product.attributes?.price || '0',
-          currency_code: product.attributes?.currency_code || 'USD',
-        },
-        relationships: product.relationships || {}
-      }));
-
-      // Return the response in the format expected by product-store.js
-      return {
-        data: products,
-        included: included
-      };
+      return { products: responseData.data || [] }; // Still expecting 'data'
     } catch (error) {
       console.error('Error fetching featured products:', error);
       throw error;
@@ -237,18 +70,58 @@ class CommerceLayerApi {
   }
 
   /**
-   * Update the market for subsequent API calls
+   * Get products listing with filtering options
+   * Calls the 'product-listing' Netlify function
    */
-  setMarket(marketId: string): void {
-    this.marketId = marketId;
+  async getProductsListing(options: {
+    category?: string;
+    page?: number;
+    pageSize?: number;
+    sortBy?: string;
+  } = {}): Promise<{ 
+    products: Product[];
+    total: number;
+    page: number;
+    totalPages: number;
+  }> {
+    // Use a fixed URL for local function development
+    const baseUrl = import.meta.env.DEV ? 'http://localhost:9999/.netlify/functions' : '';
+    
+    const params = new URLSearchParams({
+      market: this.marketId.toLowerCase(),
+      ...(options.category && { category: options.category }),
+      ...(options.page && { page: options.page.toString() }),
+      ...(options.pageSize && { pageSize: options.pageSize.toString() }),
+      ...(options.sortBy && { sortBy: options.sortBy })
+    });
+
+    try {
+      const url = `${baseUrl}/product-listing?${params.toString()}`;
+      console.log(`[CommerceLayerApi] Fetching product listing from: ${url}`);
+
+      const response = await fetch(
+        url,
+        {
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `Failed to fetch product listing: ${response.statusText}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching product listing:', error);
+      throw error;
+    }
   }
 }
 
-// Export the class
-export { CommerceLayerApi };
-
 // Create and export a singleton instance
 export const commerceLayerApi = new CommerceLayerApi();
-
-// Also export as default
 export default CommerceLayerApi;
