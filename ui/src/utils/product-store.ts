@@ -31,7 +31,10 @@ export const useProductStore = create<ProductState>((set) => ({
       commerceLayerApi.setMarket(selectedMarket.id);
       
       // Fetch products for the specific market
-      const response = await commerceLayerApi.getFeaturedProducts();
+      const response = await commerceLayerApi.getProductsListing({
+        market: selectedMarket.id,
+        ...(category && { category })
+      });
       
       console.log('Commerce Layer API response:', response);
       
