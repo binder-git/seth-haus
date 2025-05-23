@@ -5,7 +5,6 @@ import { SimpleFooter } from './SimpleFooter';
 import SimpleHeader from './SimpleHeader';
 import { Market } from "@/types";
 import { useMarketStore } from "@/utils/market-store";
-import { useCommerceLayerConfig } from "@/utils/commerceLayerConfig";
 
 export interface AppContextProps {
   clientId: string | null;
@@ -37,7 +36,6 @@ export const useAppContext = () => {
 };
 
 export const AppProvider = ({ children }: AppProviderProps): React.ReactElement => {
-  const { config, loading: configLoading, error: configError } = useCommerceLayerConfig();
   const [clReady, setClReady] = useState(false);
   const [currentMarketId, setCurrentMarketId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -46,30 +44,17 @@ export const AppProvider = ({ children }: AppProviderProps): React.ReactElement 
 
   const { market } = useMarketStore();
 
-  const clientId = config?.clientId || null;
-  const organization = config?.organization || null;
-  const baseUrl = config ? `https://${config.organization}.${config.domain}/api` : null;
-
-  const marketIdMap = useMemo(() => {
-    if (!config?.markets) return null;
-    return Object.entries(config.markets).reduce((acc, [key, value]) => {
-      acc[key] = value.scope;
-      return acc;
-    }, {} as Record<string, string>);
-  }, [config?.markets]);
-
-  const configReady = !configLoading && !configError && config !== null;
+  // Default values since we're removing the config
+  const clientId = null;
+  const organization = null;
+  const baseUrl = null;
+  const marketIdMap = null;
+  const configReady = true; // Assume config is ready since we're not using it anymore
 
   useEffect(() => {
-    if (configReady) {
-      setClReady(true);
-      if (configError) {
-        setError(configError);
-      }
-    } else if (configError) {
-      setError(configError);
-    }
-  }, [configReady, configError]);
+    // Set CL as ready since we're not using the config anymore
+    setClReady(true);
+  }, []);
 
   const setMarketInContext = (newMarket: Market) => {
     if (!marketIdMap) return;
@@ -96,7 +81,7 @@ export const AppProvider = ({ children }: AppProviderProps): React.ReactElement 
     clReady,
     currentMarketId,
     market,
-    error: error || configError,
+    error,
     accessToken,
     organization,
     v2ConfigReady,
@@ -110,39 +95,19 @@ export const AppProvider = ({ children }: AppProviderProps): React.ReactElement 
     currentMarketId,
     market,
     error,
-    configError,
     accessToken,
     organization,
     v2ConfigReady,
-    setMarketInContext,
   ]);
-
-  if (configLoading) {
-    return (
-      <div className="flex flex-col min-h-screen items-center justify-center">
-        Loading application configuration...
-      </div>
-    );
-  }
-
-  if (configError) {
-    return (
-      <div className="flex flex-col min-h-screen items-center justify-center text-red-600">
-        Error loading application: {configError}
-      </div>
-    );
-  }
 
   return (
     <AppContext.Provider value={value}>
       <TooltipProvider>
-        <div className="flex flex-col min-h-screen">
-          <SimpleHeader selectedMarket={market} onMarketChange={setMarketInContext} />
-          <main className="flex-grow">
-            {children}
-          </main>
+        <div className="min-h-screen flex flex-col">
+          <SimpleHeader />
+          <main className="flex-grow">{children}</main>
           <SimpleFooter />
-          <Toaster position="bottom-right" />
+          <Toaster position="top-center" />
         </div>
       </TooltipProvider>
     </AppContext.Provider>
