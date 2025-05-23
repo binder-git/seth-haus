@@ -3,7 +3,6 @@ import { useMarketStore } from "@/utils/market-store";
 import { Market } from '@/types';
 import { CommerceLayerProvider } from "@/contexts/CommerceLayerContext";
 import { Outlet, useLocation } from "react-router-dom";
-import EnvDebug from "@/components/EnvDebug";
 import { CommerceLayerConfigProvider } from "@/utils/commerceLayerConfig";
 import CommerceLayerInitializer from "@/components/commerce/CommerceLayerInitializer";
 
@@ -21,11 +20,6 @@ export default function App() {
     <CommerceLayerConfigProvider>
       <CommerceLayerProvider>
         <CommerceLayerInitializer>
-          {import.meta.env.DEV && (
-            <div style={{ marginBottom: '2rem' }}>
-              <EnvDebug />
-            </div>
-          )}
           <Outlet context={{ selectedMarket: market }} />
         </CommerceLayerInitializer>
       </CommerceLayerProvider>

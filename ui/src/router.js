@@ -4,7 +4,6 @@ import { userRoutes } from "./user-routes";
 import NotFoundPage from "pages/NotFoundPage";
 import SomethingWentWrongPage from "pages/SomethingWentWrongPage";
 import { RootLayout } from "./components/RootLayout.tsx";
-import DebugPage from "pages/DebugPage"; // Keep this if DebugPage still exists and is used elsewhere, otherwise remove too
 
 console.log('[Router] Configuring routes...');
 
@@ -14,11 +13,6 @@ const router = createBrowserRouter([
     element: _jsx(RootLayout, {}),
     errorElement: _jsx(SomethingWentWrongPage, {}),
     children: [
-      // Debug routes
-      {
-        path: "debug",
-        element: _jsx(DebugPage, {})
-      },
       // User routes
       ...userRoutes,
       // 404 route
