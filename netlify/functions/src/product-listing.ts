@@ -1,3 +1,4 @@
+import { Handler, HandlerEvent, HandlerContext } from '@netlify/functions';
 import fetch from 'node-fetch';
 import dotenv from 'dotenv';
 import path from 'path';
@@ -26,6 +27,104 @@ console.log('[Debug] Process environment variables:', {
     COMMERCE_LAYER_UK_SKU_LIST_ID: process.env.COMMERCE_LAYER_UK_SKU_LIST_ID || 'not set'
 });
 
+// Interfaces for Commerce Layer JSON:API structure
+
+// Attributes for a Price resource
+interface PriceAttributes {
+    amount_float: number;
+    currency_code: string;
+    formatted_amount: string;
+    compare_at_amount_float: number | null;
+    formatted_compare_at_amount: string | null;
+}
+
+// Attributes for a Tag resource
+interface TagAttributes {
+    name: string;
+}
+
+// Basic resource identifier for relationships
+interface RelationshipData {
+    id: string;
+    type: string; // e.g., 'prices', 'tags'
+}
+
+// Relationships object for a resource
+interface Relationships {
+    prices?: { data: RelationshipData[] };
+    tags?: { data: RelationshipData[] };
+    // Add other relationships if necessary (e.g., 'sku_list')
+}
+
+// Attributes for an SKU resource
+interface SkuAttributes {
+    code: string;
+    name: string;
+    description: string;
+    image_url: string;
+    reference: string;
+    reference_origin: string;
+    created_at: string; // ISO 8601 string
+    updated_at: string; // ISO 8601 string
+    metadata?: Record<string, any>;
+    tags?: string[]; // Assuming tags can be directly present as strings sometimes
+}
+
+// Full JSON:API resource for an SKU
+interface SkuResource {
+    id: string;
+    type: 'skus';
+    attributes: SkuAttributes;
+    relationships?: Relationships;
+}
+
+// Commerce Layer API response structure for fetching SKUs
+interface CommerceLayerSkuApiResponse {
+    data: SkuResource[];
+    included?: (PriceResource | TagResource)[]; // Union of included resources
+}
+
+// Concrete types for included resources
+interface PriceResource extends RelationshipData {
+    type: 'prices';
+    attributes: PriceAttributes;
+}
+
+interface TagResource extends RelationshipData {
+    type: 'tags';
+    attributes: TagAttributes;
+}
+
+// Interface for the transformed product object returned by the function
+interface TransformedProduct {
+    id: string;
+    type: 'skus';
+    attributes: {
+        code: string;
+        name: string;
+        description: string;
+        image_url: string;
+        price: string;
+        currency_code: string;
+        compare_at_amount: string | null;
+        reference_origin: string;
+        created_at: string;
+        updated_at: string;
+    };
+    relationships: {
+        prices: { data: { id: string; type: 'prices' }[] };
+        tags: { data: { id: string; type: 'tags' }[] };
+    };
+    tags?: { id: string; name: string; slug: string }[];
+    category?: string;
+}
+
+// Interface for the final response body sent to the frontend
+interface ProductListingResponseBody {
+    products: TransformedProduct[];
+    included: (PriceResource | TagResource)[];
+}
+
 // CORS headers
 const CORS_HEADERS = {
     'Access-Control-Allow-Origin': 'http://localhost:5173',
@@ -38,7 +137,7 @@ const CORS_HEADERS = {
 /**
  * Create a CORS response
  */
-const createCorsResponse = (statusCode, body = null) => {
+const createCorsResponse = (statusCode: number, body: object | null = null) => {
     return {
         statusCode,
         headers: {
@@ -52,11 +151,11 @@ const createCorsResponse = (statusCode, body = null) => {
 /**
  * Handle OPTIONS request (CORS preflight)
  */
-const handleOptions = () => {
+const handleOptions = (): { statusCode: number; headers: object; body: string } => {
     return createCorsResponse(204);
 };
 
-async function getAccessToken(market) {
+async function getAccessToken(market: string): Promise<string> {
     // Log all relevant environment variables (with sensitive data redacted)
     console.log('[getAccessToken] Environment variables:', {
         NODE_ENV: process.env.NODE_ENV,
@@ -174,7 +273,7 @@ async function getAccessToken(market) {
     }
 }
 
-async function getSkus(accessToken, skuListId, tag = null, includeTags = true) {
+async function getSkus(accessToken: string, skuListId: string, tag: string | null = null, includeTags: boolean = true): Promise<object> {
     const organization = process.env.COMMERCE_LAYER_ORGANIZATION;
     
     try {
@@ -241,8 +340,8 @@ async function getSkus(accessToken, skuListId, tag = null, includeTags = true) {
     }
 }
 
-export const handler = async (event) => {
-    console.log('[Featured Products Direct] Handler called:', {
+export const handler: Handler = async (event: HandlerEvent, context: HandlerContext) => {
+    console.log('[Product Listing] Handler called:', {
         path: event.path,
         method: event.httpMethod,
         query: event.queryStringParameters,
@@ -287,168 +386,85 @@ export const handler = async (event) => {
         const accessToken = await getAccessToken(market);
         
         // Fetch SKUs with optional category filter and include tags
-        const skusData = await getSkus(accessToken, skuListId, category, true);
+        const skusData: CommerceLayerSkuApiResponse = await getSkus(accessToken, skuListId, category, true);
         
-        console.log(`[Featured Products Direct] Fetched ${skusData.data.length} products for market ${market}` + 
+        console.log(`[Product Listing] Fetched ${skusData.data.length} products for market ${market}` + 
                    (category ? `, filtered by tag: ${category}` : ''));
         
-        // Get tags from included data if available
-        const tagsMap = new Map();
-        if (skusData.included) {
-            skusData.included.forEach(item => {
-                if (item.type === 'tags') {
-                    tagsMap.set(item.id, item.attributes.name);
-                }
-            });
-        }
-        
-        // Transform the response to include tags and local images
-        const products = skusData.data.map(sku => {
+        // Transform the data into the expected format
+        const products: TransformedProduct[] = skusData.data.map(sku => {
             // Generate local image path based on SKU code or reference
-            // Format: /migrated-assets/{sku-code}.jpg
             const skuCode = sku.attributes.code || sku.attributes.reference || sku.id;
             const imageUrl = `/migrated-assets/${skuCode}.jpg`;
             
-            // Extract price information
-            let price = 0;
-            let currency = 'USD';
-            let compareAtPrice = null;
-            
-            if (sku.relationships?.prices?.data?.length > 0) {
-                const priceId = sku.relationships.prices.data[0].id;
-                const priceObj = skusData.included?.find(
-                    item => item.type === 'prices' && item.id === priceId
-                );
-                
-                if (priceObj) {
-                    price = priceObj.attributes.amount_float || 0;
-                    currency = priceObj.attributes.currency_code || 'USD';
-                    
-                    // Get compare at price if available
-                    if (priceObj.attributes.compare_at_amount_float) {
-                        compareAtPrice = priceObj.attributes.compare_at_amount_float;
-                    }
-                }
-            }
-            
-            // Get tags with proper names
-            const tags = sku.relationships?.tags?.data?.map(tagRef => ({
-                id: tagRef.id,
-                name: tagsMap.get(tagRef.id) || tagRef.id,
-                slug: (tagsMap.get(tagRef.id) || tagRef.id).toLowerCase().replace(/\s+/g, '-')
-            })) || [];
-            
+            // Find the default price for this SKU
+            const price = skusData.included?.find(
+                (item): item is PriceResource => 
+                    item.type === 'prices' && 
+                    sku.relationships?.prices?.data.some(p => p.id === item.id)
+            );
+
+            // Get all tags for this SKU
+            const tags = (skusData.included || [])
+                .filter((item): item is TagResource => 
+                    item.type === 'tags' && 
+                    sku.relationships?.tags?.data.some(t => t.id === item.id)
+                )
+                .map(tag => ({
+                    id: tag.id,
+                    name: tag.attributes.name,
+                    slug: tag.attributes.name.toLowerCase().replace(/\s+/g, '-')
+                }));
+
             // For backward compatibility, include the first tag as category
-            const category = (() => {
-                const firstTag = tags[0];
-                return firstTag ? firstTag.slug : '';
-            })();
+            const firstTag = tags[0];
+            const productCategory = firstTag ? firstTag.slug : '';
             
             return {
                 id: sku.id,
-                type: sku.type,
-                code: sku.attributes.code || sku.id,
-                reference: sku.attributes.reference || '',
-                name: sku.attributes.name || 'Unnamed Product',
-                description: sku.attributes.description || '',
-                image_url: imageUrl,
-                price: price,
-                compare_at_price: compareAtPrice,
-                currency: currency,
-                tags: tags,
-                category: category,
-                // Include additional metadata
-                metadata: {
-                    origin: sku.attributes.reference_origin || 'commercelayer',
-                    created_at: sku.attributes.created_at,
-                    updated_at: sku.attributes.updated_at
-                }
-            };
+                type: 'skus',
+                attributes: {
+                    code: sku.attributes.code || sku.id,
+                    name: sku.attributes.name || 'Unnamed Product',
+                    description: sku.attributes.description || '',
+                    image_url: imageUrl,
+                    price: price?.attributes?.formatted_amount || '0',
+                    currency_code: price?.attributes?.currency_code || 'USD',
+                    compare_at_amount: price?.attributes?.formatted_compare_at_amount || null,
+                    reference_origin: sku.attributes.reference_origin || 'commercelayer',
+                    created_at: sku.attributes.created_at || new Date().toISOString(),
+                    updated_at: sku.attributes.updated_at || new Date().toISOString()
+                },
+                relationships: {
+                    prices: sku.relationships?.prices || { data: [] },
+                    tags: sku.relationships?.tags || { data: [] }
+                },
+                ...(tags.length > 0 && { tags }),
+                ...(productCategory && { category: productCategory })
+            } as TransformedProduct;
         });
 
-        // Transform the products to match the frontend's expected format
-        const formattedProducts = products.map(product => ({
-            id: product.id,
-            type: 'skus',
-            attributes: {
-                code: product.code,
-                name: product.name,
-                description: product.description,
-                image_url: product.image_url,
-                price: product.price.toString(), // Ensure price is a string
-                currency_code: product.currency,
-                compare_at_amount: product.compare_at_price ? product.compare_at_price.toString() : null,
-                reference_origin: 'commercelayer',
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString()
-            },
-            relationships: {
-                prices: {
-                    data: [{
-                        id: `price-${product.id}`,
-                        type: 'prices'
-                    }]
-                },
-                tags: {
-                    data: (product.tags || []).map((tag, index) => ({
-                        id: `tag-${product.id}-${index}`,
-                        type: 'tags'
-                    }))
-                }
-            }
-        }));
-        
-        // Create included data for prices and tags
-        const included = [];
-        
-        formattedProducts.forEach(product => {
-            // Add price to included
-            included.push({
-                id: `price-${product.id}`,
-                type: 'prices',
-                attributes: {
-                    amount_float: parseFloat(product.attributes.price) || 0,
-                    currency_code: product.attributes.currency_code || 'USD',
-                    formatted_amount: `$${parseFloat(product.attributes.price || 0).toFixed(2)}`,
-                    compare_at_amount_float: product.attributes.compare_at_amount ? 
-                        parseFloat(product.attributes.compare_at_amount) : null,
-                    formatted_compare_at_amount: product.attributes.compare_at_amount ? 
-                        `$${parseFloat(product.attributes.compare_at_amount).toFixed(2)}` : null
-                }
-            });
-            
-            // Add tags to included
-            (product.relationships?.tags?.data || []).forEach((tag, index) => {
-                included.push({
-                    id: tag.id,
-                    type: 'tags',
-                    attributes: {
-                        name: product.tags[index]?.name || `tag-${index}`
-                    }
-                });
-            });
-        });
-        
-        console.log(`[Featured Products Direct] Returning ${formattedProducts.length} products`);
+        // Prepare included resources (prices and tags)
+        const included: (PriceResource | TagResource)[] = [
+            ...(skusData.included || [])
+        ];
+
+        console.log(`[Product Listing] Returning ${products.length} products`);
         
         // Return the response in the format expected by the frontend
         return createCorsResponse(200, {
-            products: formattedProducts,
-            included: included
-        });
+            products,
+            included
+        } as ProductListingResponseBody);
+        
     } catch (error) {
-        console.error('[Featured Products Direct] Error:', error);
+        console.error('[Product Listing] Error:', error);
         return createCorsResponse(error.response?.status || 500, {
             status: 'error',
-            message: 'Failed to fetch products',
-            error: error.message,
+            message: error.message || 'Internal server error',
             ...(process.env.NODE_ENV === 'development' && {
                 stack: error.stack,
-                details: error.response ? {
-                    status: error.response.status,
-                    statusText: error.response.statusText,
-                    data: error.response.data
-                } : undefined
+                details: error.response?.data
             })
         });
     }
