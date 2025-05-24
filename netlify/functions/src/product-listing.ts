@@ -1,5 +1,5 @@
 import { Handler, HandlerEvent, HandlerContext } from '@netlify/functions';
-import fetch from 'node-fetch'; // Keep this for now, if Node.js 18+ is not guaranteed or global fetch isn't preferred.
+import fetch from 'node-fetch';
 
 // Debug log all environment variables (careful with sensitive data in production)
 console.log('[Debug] Process environment variables:', {
@@ -32,14 +32,13 @@ interface TagAttributes {
 // Basic resource identifier for relationships
 interface RelationshipData<T extends string> {
     id: string;
-    type: T; // Now 'type' will be a literal string like 'prices' or 'tags'
+    type: T;
 }
 
 // Relationships object for a resource
 interface Relationships {
     prices?: { data: RelationshipData<'prices'>[] };
     tags?: { data: RelationshipData<'tags'>[] };
-    // Add other relationships if necessary (e.g., 'sku_list')
 }
 
 // Attributes for an SKU resource
@@ -50,10 +49,10 @@ interface SkuAttributes {
     image_url: string;
     reference: string;
     reference_origin: string;
-    created_at: string; // ISO 8601 string
-    updated_at: string; // ISO 8601 string
+    created_at: string;
+    updated_at: string;
     metadata?: Record<string, any>;
-    tags?: string[]; // Assuming tags can be directly present as strings sometimes
+    tags?: string[];
 }
 
 // Full JSON:API resource for an SKU
@@ -61,13 +60,13 @@ interface SkuResource {
     id: string;
     type: 'skus';
     attributes: SkuAttributes;
-    relationships?: Relationships; // This now refers to the updated, more specific Relationships
+    relationships?: Relationships;
 }
 
 // Commerce Layer API response structure for fetching SKUs
 interface CommerceLayerSkuApiResponse {
     data: SkuResource[];
-    included?: (PriceResource | TagResource)[]; // Union of included resources
+    included?: (PriceResource | TagResource)[];
 }
 
 // Concrete types for included resources
@@ -91,12 +90,11 @@ interface TransformedProduct {
         price: string;
         currency_code: string;
         compare_at_amount: string | null;
-        formatted_compare_at_amount: string | null; // Added for completeness from PriceAttributes
+        formatted_compare_at_amount: string | null;
         reference_origin: string;
         created_at: string;
         updated_at: string;
     };
-    // Ensure the relationships here also use the specific literal types
     relationships: {
         prices: { data: RelationshipData<'prices'>[] };
         tags: { data: RelationshipData<'tags'>[] };
@@ -113,11 +111,10 @@ interface ProductListingResponseBody {
 
 // CORS headers that will be applied to ALL responses
 const CORS_HEADERS: { [header: string]: string } = {
-    'Access-Control-Allow-Origin': 'http://localhost:5173', // Explicitly allow your frontend origin
+    'Access-Control-Allow-Origin': 'http://localhost:5173',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     'Access-Control-Allow-Methods': 'GET, OPTIONS',
     'Access-Control-Allow-Credentials': 'true'
-    // 'Vary': 'Origin, Access-Control-Request-Headers, Access-Control-Request-Method' // Often not needed for simple GET/OPTIONS, can be added if issues persist
 };
 
 /**
@@ -128,7 +125,7 @@ const createCorsResponse = (statusCode: number, body: object | null = null): { s
     return {
         statusCode,
         headers: {
-            ...CORS_HEADERS, // Apply CORS headers
+            ...CORS_HEADERS,
             'Content-Type': 'application/json'
         },
         body: body ? JSON.stringify(body) : ''
@@ -139,7 +136,6 @@ const createCorsResponse = (statusCode: number, body: object | null = null): { s
  * Handle OPTIONS request (CORS preflight)
  */
 const handleOptions = (): { statusCode: number; headers: { [header: string]: string }; body: string } => {
-    // For OPTIONS, we typically send a 204 No Content response with just the CORS headers
     return createCorsResponse(204);
 };
 
@@ -169,11 +165,10 @@ const parseMarketId = (marketParam: string): string => {
     
     // Log unrecognized markets for debugging
     console.warn(`[parseMarketId] Unrecognized market ID: ${marketParam}, defaulting to UK`);
-    return 'uk'; // Default fallback
+    return 'uk';
 };
 
 async function getAccessToken(market: string): Promise<string> {
-    // Log all relevant environment variables (with sensitive data redacted)
     console.log('[getAccessToken] Environment variables:', {
         NODE_ENV: process.env.NODE_ENV,
         COMMERCE_LAYER_ORGANIZATION: process.env.COMMERCE_LAYER_ORGANIZATION ? '***' : 'not set',
@@ -198,9 +193,9 @@ async function getAccessToken(market: string): Promise<string> {
     // Determine the scope based on the market
     let scope;
     if (market === 'eu') {
-        scope = process.env.COMMERCE_LAYER_EU_SCOPE || `market:id:${process.env.COMMERCE_LAYER_EU_SCOPE_ID}`;
+        scope = process.env.COMMERCE_LAYER_EU_SCOPE;
     } else if (market === 'uk') {
-        scope = process.env.COMMERCE_LAYER_UK_SCOPE || `market:id:${process.env.COMMERCE_LAYER_UK_SCOPE_ID}`;
+        scope = process.env.COMMERCE_LAYER_UK_SCOPE;
     } else {
         throw new Error('Invalid market specified. Must be "eu" or "uk"');
     }
@@ -214,12 +209,10 @@ async function getAccessToken(market: string): Promise<string> {
 
         const authUrl = 'https://auth.commercelayer.io/oauth/token';
 
-        // Log the first few characters of client ID and secret (for debugging)
         console.log(`[getAccessToken] Client ID: ${clientId ? `${clientId.substring(0, 4)}...` : 'not set'}`);
         console.log(`[getAccessToken] Client Secret: ${clientSecret ? '***' : 'not set'}`);
         console.log(`[getAccessToken] Scope: ${scope}`);
 
-        // Create the request body as a string to match the curl command
         const requestBody = new URLSearchParams({
             grant_type: 'client_credentials',
             client_id: clientId,
@@ -227,7 +220,6 @@ async function getAccessToken(market: string): Promise<string> {
             scope: scope
         }).toString();
 
-        // Log the request details (without sensitive data)
         console.log('[getAccessToken] Request details:', {
             url: authUrl,
             method: 'POST',
@@ -243,7 +235,6 @@ async function getAccessToken(market: string): Promise<string> {
             }
         });
 
-        // Make the request with form-encoded body
         const response = await fetch(authUrl, {
             method: 'POST',
             headers: {
@@ -268,9 +259,9 @@ async function getAccessToken(market: string): Promise<string> {
         let data;
         try {
             data = JSON.parse(responseText);
-        } catch (e: unknown) { // Type 'unknown'
+        } catch (e: unknown) {
             console.error(`[getAccessToken] Failed to parse JSON response:`, e);
-            if (e instanceof Error) { // Type guard
+            if (e instanceof Error) {
                 throw new Error(`Failed to parse token response: ${e.message}`);
             }
             throw new Error(`Failed to parse token response: ${String(e)}`);
@@ -283,11 +274,11 @@ async function getAccessToken(market: string): Promise<string> {
 
         console.log('[getAccessToken] Successfully obtained access token');
         return data.access_token;
-    } catch (error: unknown) { // Type 'unknown'
+    } catch (error: unknown) {
         console.error('[getAccessToken] Error details:', {
             message: error instanceof Error ? error.message : 'Unknown error message',
             stack: error instanceof Error ? error.stack : 'No stack available',
-            response: (error as HttpError).response // Cast to HttpError to safely access response
+            response: (error as HttpError).response
         });
         throw error;
     }
@@ -301,14 +292,12 @@ async function getSkus(accessToken: string, skuListId: string, tag: string | nul
     }
 
     try {
-        // Fetch SKUs directly (simplified approach to avoid permissions issues)
+        // Fetch SKUs directly (no tag filtering - it's not supported by Commerce Layer API)
         const skusUrl = new URL(`https://${organization}.commercelayer.io/api/skus`);
         
-        // Add tag filter if provided
-        if (tag) {
-            skusUrl.searchParams.append('filter[tags_name_cont]', tag);
-        }
-
+        // REMOVED: Tag filtering is not supported by Commerce Layer API
+        // The filter[tags_name_cont] is not allowed according to the API documentation
+        
         // Set up includes
         const includes = ['prices', 'tags'];
         skusUrl.searchParams.append('include', includes.join(','));
@@ -355,7 +344,30 @@ async function getSkus(accessToken: string, skuListId: string, tag: string | nul
             throw httpError;
         }
 
-        return await response.json() as CommerceLayerSkuApiResponse;
+        const result = await response.json() as CommerceLayerSkuApiResponse;
+        
+        // CLIENT-SIDE tag filtering if a tag is provided
+        if (tag && result.data) {
+            console.log(`[getSkus] Applying client-side tag filtering for: ${tag}`);
+            const originalCount = result.data.length;
+            
+            result.data = result.data.filter(sku => {
+                // Find tags associated with this SKU
+                const skuTagIds = sku.relationships?.tags?.data?.map(tagRef => tagRef.id) || [];
+                const skuTags = result.included?.filter(item => 
+                    item.type === 'tags' && skuTagIds.includes(item.id)
+                ) as TagResource[] || [];
+                
+                // Check if any tag name contains the search term
+                return skuTags.some(tagItem => 
+                    tagItem.attributes?.name?.toLowerCase().includes(tag.toLowerCase())
+                );
+            });
+            
+            console.log(`[getSkus] Filtered from ${originalCount} to ${result.data.length} SKUs based on tag: ${tag}`);
+        }
+
+        return result;
     } catch (error: unknown) {
         console.error('[getSkus] Error in getSkus:', error);
         throw error;
@@ -413,7 +425,7 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
 
         // Transform SKUs for the frontend
         const transformedProducts: TransformedProduct[] = skuResponse.data.map(sku => {
-            // Find the primary price (you might have more complex logic here)
+            // Find the primary price
             const priceRelationship = sku.relationships?.prices?.data?.[0];
             const priceResource = priceRelationship
                 ? skuResponse.included?.find(item => item.id === priceRelationship.id && item.type === 'prices') as PriceResource
@@ -450,12 +462,11 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
                     prices: sku.relationships?.prices || { data: [] },
                     tags: sku.relationships?.tags || { data: [] },
                 },
-                // Optionally add tags here if you want them transformed and directly on the product object
+                // Add tags here if you want them transformed and directly on the product object
                 tags: sku.relationships?.tags?.data.map(tagData => {
                     const tagResource = skuResponse.included?.find(item => item.id === tagData.id && item.type === 'tags') as TagResource;
-                    return tagResource ? { id: tagResource.id, name: tagResource.attributes.name, slug: tagResource.id } : undefined; // Assuming slug is ID for simplicity
+                    return tagResource ? { id: tagResource.id, name: tagResource.attributes.name, slug: tagResource.id } : undefined;
                 }).filter(Boolean) as { id: string; name: string; slug: string }[] || [],
-                // category: ... (add category logic if needed, e.g., from tags or metadata)
             };
             return transformedProduct;
         });
@@ -472,15 +483,13 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
 
         if (error instanceof Error) {
             errorMessage = error.message;
-            const httpError = error as HttpError; // Cast to HttpError
+            const httpError = error as HttpError;
             if (httpError.response?.status) {
                 statusCode = httpError.response.status;
-                // For 4xx errors, we might want to return the actual error message from the upstream API
                 if (statusCode >= 400 && statusCode < 500 && httpError.response.data) {
                     try {
                         errorMessage = JSON.parse(httpError.response.data).errors?.map((err: any) => err.detail).join(', ') || errorMessage;
                     } catch (e) {
-                        // Fallback if parsing upstream error data fails
                         errorMessage = httpError.response.data;
                     }
                 }

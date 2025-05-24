@@ -1,476 +1,405 @@
-import React, {
-  useState,
-  useEffect,
-  useMemo,
-  useCallback,
-  useTransition,
-} from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
-import { useAppProducts, useProductStore } from "utils/product-store";
-import { useAppContext } from "components/AppProvider";
-import type { Product, Category } from '@/types/models/product';
-import { ProductBrand } from '@/types/models/product';
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Slider } from "@/components/ui/slider";
-import { Separator } from "@/components/ui/separator";
-import { Card, CardContent } from "@/components/ui/card"; // Removed CardFooter import
-import { Skeleton } from "@/components/ui/skeleton";
+// ui/src/pages/Products.tsx
 
-export default function Products() {
-  const navigate = useNavigate();
-  const { market, currentMarketId } = useAppContext();
-  const { fetchProducts } = useProductStore();
-  const { products, isLoading, error } = useAppProducts(market); 
+import React, { useState, useEffect, useMemo } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useMarketStore } from '@/utils/market-store';
+import { ProductItemCard } from '@/components/ProductItemCard';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Slider } from '@/components/ui/slider';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Loader2, AlertCircle } from 'lucide-react';
+
+// Product interface matching the actual Commerce Layer API response structure
+interface Product {
+  id: string;
+  type: string;
+  attributes: {
+    code: string;
+    name: string;
+    description: string;
+    image_url: string;
+    price: string;
+    currency_code: string;
+    reference_origin: string;
+    created_at: string;
+    updated_at: string;
+  };
+  relationships?: {
+    prices: { data: Array<{ id: string; type: string }> };
+    tags: { data: Array<{ id: string; type: string }> };
+  };
+  tags?: Array<{
+    id: string;
+    name: string;
+    slug: string;
+  }>;
+}
+
+// API response interface from product-listing function
+interface ProductListingResponse {
+  products: Product[];
+  included: any[];
+}
+
+// Category mapping for filtering
+const CATEGORIES = [
+  { id: 'all', name: 'All Products', slug: 'all' },
+  { id: 'bike', name: 'Bike', slug: 'bike' },
+  { id: 'run', name: 'Run', slug: 'run' },
+  { id: 'swim', name: 'Swim', slug: 'swim' },
+  { id: 'tri', name: 'Triathlon', slug: 'tri' }
+];
+
+const Products: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [isPending, startTransition] = useTransition();
-
-  const categoryParam = (searchParams.get("category") as Category) || undefined;
-
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 3000]);
+  const navigate = useNavigate();
+  const { market } = useMarketStore();
   
-  // Helper function to safely access product properties
-  const isNewProduct = (product: Product) => product.new === true;
-  const getProductImage = (product: Product) => product.image_url || product.imageUrl || '';
-  const [showNew, setShowNew] = useState<boolean>(false);
-  const [showBestSellers, setShowBestSellers] = useState<boolean>(false);
-  const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
-  const [selectedColors, setSelectedColors] = useState<string[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<Category | null>(
-    categoryParam
-  );
-  const [availableBrands, setAvailableBrands] = useState<ProductBrand[]>([]);
-  const [selectedBrands, setSelectedBrands] = useState<ProductBrand[]>([]);
-  const [currentMinPrice, setCurrentMinPrice] = useState<number>(0);
-  const [currentMaxPrice, setCurrentMaxPrice] = useState<number>(3000);
-  const [availableSizes, setAvailableSizes] = useState<string[]>([]);
-  const [availableColors, setAvailableColors] = useState<string[]>([]);
+  // State management
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 500]);
+  const [maxPrice, setMaxPrice] = useState<number>(500);
+  
+  // Get current category from URL params
+  const currentCategory = searchParams.get('category') || 'all';
 
-  useEffect(() => {
-    if (market && currentMarketId) {
-      console.log(`Fetching products for market: ${market} (ID: ${currentMarketId}), category: ${categoryParam}`);
-      fetchProducts(market, categoryParam);
-    }
-  }, [market, currentMarketId, categoryParam, fetchProducts]);
+  // Extract numeric price from Commerce Layer formatted price
+  const extractPrice = (formattedPrice: string): number => {
+    if (!formattedPrice || formattedPrice === 'N/A') return 0;
+    // Remove currency symbols and convert to number
+    const numericPrice = formattedPrice.replace(/[£$€,\s]/g, '');
+    return parseFloat(numericPrice) || 0;
+  };
 
-  useEffect(() => {
-    if (categoryParam) {
-      setSelectedCategory(categoryParam);
-    } else {
-      setSelectedCategory(null);
-    }
-  }, [categoryParam]);
-
-  const derivedFilterOptions = useMemo(() => {
-    if (!market || products.length === 0) {
-      return {
-        calculatedBrands: [] as ProductBrand[],
-        calculatedMinPrice: 0,
-        calculatedMaxPrice: 3000,
-        calculatedSizes: [] as string[],
-        calculatedColors: [] as string[],
-      };
-    }
-
-    // Get all prices, handling both pricing object and direct price
-    const prices = products
-      .map((p) => p.pricing?.price ?? p.price)
-      .filter((price): price is number => price !== undefined && !isNaN(price));
-
-    // Get all unique brands
-    const allBrands = Array.from(
-      new Set(
-        products
-          .map((p) => p.brand)
-          .filter((brand): brand is ProductBrand => {
-            // Ensure the brand is a valid ProductBrand string
-            if (!brand) return false;
-            const validBrands: ProductBrand[] = [
-              "BlueSeventy", "HUUB", "Zone3", "Orca", 
-              "Cervelo", "Canyon", "Specialized", "Trek",
-              "HOKA", "Nike", "Asics", "ON",
-              "2XU", "Castelli", "Zoot", "TYR"
-            ];
-            return validBrands.includes(brand as ProductBrand);
-          })
-      )
-    );
-
-    // Get all unique sizes
-    const allSizes = Array.from(
-      new Set(
-        products.flatMap((p) => p.sizes || []).filter(Boolean) as string[]
-      )
-    );
-
-    // Get all unique colors
-    const allColors = Array.from(
-      new Set(
-        products.flatMap((p) => p.colors || []).filter(Boolean) as string[]
-      )
-    );
-
-    // Calculate min and max prices, default to 0-3000 if no valid prices found
-    const minPrice = prices.length > 0 ? Math.floor(Math.min(...prices)) : 0;
-    const maxPrice = prices.length > 0 ? Math.ceil(Math.max(...prices)) : 3000;
-
-    return {
-      calculatedBrands: allBrands,
-      calculatedMinPrice: minPrice,
-      calculatedMaxPrice: maxPrice,
-      calculatedSizes: allSizes,
-      calculatedColors: allColors,
-    };
-  }, [products, market, isLoading]);
-
-  useEffect(() => {
-    startTransition(() => {
-      setAvailableBrands(derivedFilterOptions.calculatedBrands);
-      setCurrentMinPrice(derivedFilterOptions.calculatedMinPrice);
-      setCurrentMaxPrice(derivedFilterOptions.calculatedMaxPrice);
-      setAvailableSizes(derivedFilterOptions.calculatedSizes);
-      setAvailableColors(derivedFilterOptions.calculatedColors);
-      setPriceRange([derivedFilterOptions.calculatedMinPrice, derivedFilterOptions.calculatedMaxPrice]);
-    });
-  }, [derivedFilterOptions, startTransition]);
-
-  const memoizedDisplayProducts = useMemo(() => {
-    if (isLoading || !market || products.length === 0) {
-      return [];
-    }
+  // Calculate price range from products
+  const calculatePriceRange = (products: Product[]): [number, number] => {
+    if (products.length === 0) return [0, 500];
     
-    let filtered = [...products];
+    const prices = products.map(product => {
+      // Extract price from Commerce Layer format
+      const priceStr = product.attributes?.price || '0';
+      return extractPrice(priceStr);
+    }).filter(price => price > 0);
     
-    // Filter by category if selected
-    if (selectedCategory) {
-      filtered = filtered.filter((p) => 
-        p.category && p.category.toLowerCase() === selectedCategory.toLowerCase()
-      );
-    }
+    if (prices.length === 0) return [0, 500];
     
-    // Filter by selected brands
-    if (selectedBrands.length > 0) {
-      filtered = filtered.filter((p) => 
-        p.brand && selectedBrands.includes(p.brand as ProductBrand)
-      );
-    }
-    
-    // Filter by price range
-    filtered = filtered.filter((p) => {
-      const price = p.pricing?.price ?? p.price; // Handle both pricing object and direct price
-      return price !== undefined && price >= priceRange[0] && price <= priceRange[1];
-    });
-    
-    // Filter by new products
-    if (showNew) {
-      filtered = filtered.filter((p) => p.new === true);
-    }
-    
-    // Filter by best sellers
-    if (showBestSellers) {
-      filtered = filtered.filter((p) => p.bestSeller === true);
-    }
-    
-    // Filter by sizes if any selected
-    if (selectedSizes.length > 0) {
-      filtered = filtered.filter((p) =>
-        p.sizes?.some((size: string) => selectedSizes.includes(size))
-      );
-    }
-    
-    // Filter by colors if any selected
-    if (selectedColors.length > 0) {
-      filtered = filtered.filter((p) =>
-        p.colors?.some((color: string) => selectedColors.includes(color))
-      );
-    }
-    
-    return filtered;
-  }, [
-    products,
-    market,
-    isLoading,
-    selectedCategory,
-    selectedBrands,
-    priceRange,
-    showNew,
-    showBestSellers,
-    selectedSizes,
-    selectedColors,
-  ]);
+    const min = Math.floor(Math.min(...prices));
+    const max = Math.ceil(Math.max(...prices));
+    return [min, max];
+  };
 
-  const handleSizeFilter = useCallback((size: string) => {
-    startTransition(() => {
-      setSelectedSizes((prev) =>
-        prev.includes(size) ? prev.filter((s) => s !== size) : [...prev, size]
-      );
-    });
-  }, [startTransition]);
+  // Fetch products from product-listing Netlify function
+  const fetchProducts = async (category?: string) => {
+    try {
+      setLoading(true);
+      setError(null);
 
-  const handleColorFilter = useCallback((color: string) => {
-    startTransition(() => {
-      setSelectedColors((prev) =>
-        prev.includes(color) ? prev.filter((c) => c !== color) : [...prev, color]
-      );
-    });
-  }, [startTransition]);
+      // Build API URL with market and optional category filter
+      const params = new URLSearchParams({
+        market: market.id || 'market:id:vjzmJhvEDo'
+      });
 
-  const handleBrandChange = useCallback((brand: ProductBrand, checked: boolean) => {
-    setSelectedBrands((prev) =>
-      checked ? [...prev, brand] : prev.filter((b) => b !== brand)
-    );
-  }, [setSelectedBrands]);
-
-  const handleCategoryChange = useCallback((category: Category | null) => {
-    startTransition(() => {
-      setSelectedCategory(category);
-      if (category) {
-        setSearchParams({ category });
-      } else {
-        setSearchParams({});
+      // Add category filter if not 'all'
+      if (category && category !== 'all') {
+        params.append('tag', category);
       }
-    });
-  }, [startTransition, setSearchParams]);
 
-  const handleClearFilters = useCallback(() => {
-    startTransition(() => {
-      setSelectedCategory(null);
-      setPriceRange([currentMinPrice, currentMaxPrice]);
-      setShowNew(false);
-      setShowBestSellers(false);
-      setSelectedSizes([]);
-      setSelectedColors([]);
-      setSelectedBrands([]);
-    });
-  }, [currentMinPrice, currentMaxPrice, startTransition]);
+      const apiUrl = `/.netlify/functions/product-listing?${params.toString()}`;
+      console.log('[Products] Fetching from:', apiUrl);
 
-  const handleViewDetails = useCallback((productCode: string, productId: string) => {
-    if (!market) {
-      console.error("[Products] Market context is not available for navigation.");
-      return;
+      const response = await fetch(apiUrl, {
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `Failed to fetch products: ${response.statusText}`);
+      }
+
+      const data: ProductListingResponse = await response.json();
+      console.log('[Products] API response:', data);
+      console.log('[Products] Products received:', data.products?.length || 0);
+
+      setProducts(data.products || []);
+    } catch (err) {
+      console.error('[Products] Error fetching products:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load products');
+    } finally {
+      setLoading(false);
     }
-    // productId is available if needed for a different route structure in the future, using productCode (SKU) for now as per original logic.
-    const targetUrl = `/product-detail-page?sku=${productCode}&market=${market}`;
-    navigate(targetUrl);
-  }, [navigate, market]);
+  };
 
+  // Fetch products when component mounts or category changes
+  useEffect(() => {
+    const loadProducts = async () => {
+      await fetchProducts(currentCategory);
+    };
+    
+    loadProducts();
+  }, [currentCategory, market.id]);
 
-  if (isLoading && products.length === 0) {
+  // Update price range when products change
+  useEffect(() => {
+    if (products.length > 0) {
+      const [min, max] = calculatePriceRange(products);
+      setMaxPrice(max);
+      if (priceRange[0] === 0 && priceRange[1] === 500) {
+        setPriceRange([min, max]);
+      }
+    }
+  }, [products]);
+
+  // Handle category filter changes
+  const handleCategoryChange = (categorySlug: string) => {
+    const newParams = new URLSearchParams(searchParams);
+    
+    if (categorySlug === 'all') {
+      newParams.delete('category');
+    } else {
+      newParams.set('category', categorySlug);
+    }
+    
+    setSearchParams(newParams);
+  };
+
+  // Handle product view details
+  const handleViewDetails = (productCode: string, productId: string) => {
+    console.log('[Products] View details clicked:', { productCode, productId });
+    navigate(`/products/${productCode}`);
+  };
+
+  // Memoized filtered products with price filtering
+  const memoizedDisplayProducts = useMemo(() => {
+    return products.filter(product => {
+      const price = extractPrice(product.attributes?.price || '0');
+      return price >= priceRange[0] && price <= priceRange[1];
+    });
+  }, [products, priceRange]);
+
+  // Loading state
+  if (loading) {
     return (
-      <div className="flex flex-col min-h-screen">
-        <main className="flex-grow container mx-auto px-4 py-8">
-          <Skeleton className="h-8 w-1/4 mb-6" />
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div className="md:col-span-1 space-y-6">
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-32 w-full" />
-              <Skeleton className="h-24 w-full" />
-              <Skeleton className="h-24 w-full" />
-            </div>
-            <div className="md:col-span-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[...Array(6)].map((_, i) => (
-                <Card key={`skeleton-initial-${i}`}>
-                  <CardContent className="p-4">
-                    <Skeleton className="h-48 w-full mb-4" />
-                    <Skeleton className="h-6 w-3/4 mb-2" />
-                    <Skeleton className="h-4 w-1/2" />
-                  </CardContent>
-                  {/* CardFooter was here, removed as it had a Skeleton for a button that is not part of this initial skeleton */}
-                </Card>
-              ))}
-            </div>
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+            <p className="text-muted-foreground">Loading products...</p>
           </div>
-        </main>
+        </div>
       </div>
     );
   }
 
-
-
-  const currencySymbol = market?.name === "UK" ? "£" : "€";
-
-
+  // Error state
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Card className="max-w-md mx-auto">
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <AlertCircle className="h-8 w-8 text-destructive mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2">Error Loading Products</h3>
+              <p className="text-muted-foreground mb-4">{error}</p>
+              <Button onClick={() => fetchProducts(currentCategory)}>
+                Try Again
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <main className="flex-grow container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-6 capitalize">
-          {selectedCategory ? `${selectedCategory} Gear` : "All Products"}
-        </h1>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          <aside className="md:col-span-1 space-y-6">
-            <div>
-              <h3 className="text-lg font-semibold mb-3">Categories</h3>
-              <div className="space-y-2">
-                {["All", "Swim", "Bike", "Run", "Triathlon"].map((cat) => (
-                  <Button
-                    key={cat}
-                    variant={selectedCategory?.toLowerCase() === cat.toLowerCase() || (cat === "All" && !selectedCategory) ? "secondary" : "ghost"}
-                    className="w-full justify-start capitalize"
-                    onClick={() => handleCategoryChange(cat === "All" ? null : cat.toLowerCase() as Category)}
-                    disabled={isPending || isLoading}
-                  >
-                    {cat}
-                  </Button>
-                ))}
-              </div>
-            </div>
-            <Separator />
-            <div>
-              <h3 className="text-lg font-semibold mb-3">Price Range</h3>
-              <Slider
-                min={currentMinPrice}
-                max={currentMaxPrice}
-                step={10}
-                value={priceRange}
-                onValueChange={(value) => startTransition(() => setPriceRange(value as [number, number]))}
-                className="mb-2"
-                disabled={isPending || isLoading}
-              />
-              <div className="flex justify-between text-sm text-muted-foreground">
-                <span>{currencySymbol}{priceRange[0]}</span>
-                <span>{currencySymbol}{Math.ceil(currentMaxPrice / 100) * 100}</span>
-              </div>
-            </div>
-            <Separator />
-            <div>
-              <h3 className="text-lg font-semibold mb-3">Features</h3>
-              <div className="space-y-2">
-                <div className="flex items-center space-x-2">
-                  <Checkbox id="show-new" checked={showNew} onCheckedChange={(checked) => startTransition(() => setShowNew(Boolean(checked)))} disabled={isPending || isLoading} />
-                  <label htmlFor="show-new" className="text-sm font-medium">New Arrivals</label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox id="show-best" checked={showBestSellers} onCheckedChange={(checked) => startTransition(() => setShowBestSellers(Boolean(checked)))} disabled={isPending || isLoading}/>
-                  <label htmlFor="show-best" className="text-sm font-medium">Best Sellers</label>
-                </div>
-              </div>
-            </div>
-            <Separator />
-            {availableSizes.length > 0 && (
+    <div className="container mx-auto px-4 py-8">
+      {/* Page Header */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold mb-2">Products</h1>
+        <p className="text-muted-foreground">
+          Discover our range of triathlon gear and accessories
+        </p>
+      </div>
+
+      {/* Main Layout: Sidebar + Content */}
+      <div className="flex gap-8">
+        {/* Left Sidebar - Filters */}
+        <div className="w-64 shrink-0">
+          <Card className="sticky top-4">
+            <CardContent className="p-6 space-y-6">
+              {/* Category Filters */}
               <div>
-                <h3 className="text-lg font-semibold mb-3">Sizes</h3>
-                <div className="flex flex-wrap gap-2">
-                  {availableSizes.map((size) => (
+                <Label className="text-sm font-medium mb-3 block">Categories</Label>
+                <div className="space-y-2">
+                  {CATEGORIES.map((category) => (
                     <Button
-                      key={size}
-                      variant={selectedSizes.includes(size) ? "secondary" : "outline"}
+                      key={category.id}
+                      variant={currentCategory === category.slug ? 'default' : 'ghost'}
                       size="sm"
-                      onClick={() => handleSizeFilter(size)}
-                      disabled={isPending || isLoading}
+                      onClick={() => handleCategoryChange(category.slug)}
+                      className="w-full justify-start transition-all duration-200"
                     >
-                      {size}
+                      {category.name}
                     </Button>
                   ))}
                 </div>
               </div>
-            )}
-             <Separator />
-            {availableColors.length > 0 && (
-              <div>
-                <h3 className="text-lg font-semibold mb-3">Colors</h3>
-                <div className="flex flex-wrap gap-2">
-                  {availableColors.map((color) => (
-                    <Button
-                      key={color}
-                      variant={selectedColors.includes(color) ? "secondary" : "outline"}
-                      size="sm"
-                      className="h-8 w-8 p-0 border-2"
-                      style={{
-                        backgroundColor: color,
-                        borderColor: selectedColors.includes(color) ? "hsl(var(--primary))" : color,
-                      }}
-                      onClick={() => handleColorFilter(color)}
-                      disabled={isPending || isLoading}
-                      aria-label={`Filter by color ${color}`}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
-            {availableBrands.length > 0 && (
-              <div>
-                <h3 className="text-lg font-semibold mb-3">Brands</h3>
-                <div className="space-y-2">
-                  {availableBrands.map((brand) => (
-                    <div key={brand} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`brand-${brand}`}
-                        checked={selectedBrands.includes(brand)}
-                        onCheckedChange={(checked) => 
-                          handleBrandChange(brand, Boolean(checked))
-                        }
-                        disabled={isPending || isLoading}
-                      />
-                      <label htmlFor={`brand-${brand}`} className="text-sm font-medium">
-                        {brand}
-                      </label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-            <Button variant="outline" onClick={handleClearFilters} disabled={isPending || isLoading}>
-              Clear Filters
-            </Button>
-          </aside>
 
-          <div className="md:col-span-3">
-            {isPending ? (
-                 <div className="flex justify-center items-center h-64">
-                   <p>Filtering products...</p>
-                 </div>
-            ) : !isPending && memoizedDisplayProducts.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {memoizedDisplayProducts.map((product) => {
-                  // handleViewDetails is now defined outside the map and memoized
-                  return (
-                    <Card key={product.id} className="overflow-hidden flex flex-col group">
-                      <CardContent className="p-4 flex-grow">
-                        <div className="block mb-4 cursor-pointer" onClick={() => handleViewDetails(product.code, product.id)}>
-                          <img
-                            src={product.image_url || "/placeholder.svg"} 
-                            alt={product.name}
-                            className="aspect-square w-full object-cover transition-transform duration-300 ease-in-out group-hover:scale-105"
-                            loading="lazy"
-                          />
-                        </div>
-                        <h2 className="text-lg font-semibold mb-1 truncate cursor-pointer hover:underline" onClick={() => handleViewDetails(product.code, product.id)}>
-                          {product.name}
-                        </h2>
-                        <p className="text-sm text-muted-foreground mb-2">{product.brand}</p>
-                        <p className="text-sm text-muted-foreground mt-2 line-clamp-2" title={product.description}>
-                          {product.description}
-                        </p>
-                        <div className="flex justify-between items-center mt-4">
-                          {product.pricing.formatted ? (
-                            <p className="text-lg font-bold">
-                              {product.pricing.formatted}
-                            </p>
-                          ) : (
-                            <p className="text-lg font-bold text-muted-foreground">N/A</p>
-                          )}
-                          <Button variant="default" size="sm" onClick={() => handleViewDetails(product.code, product.id)}>
-                            View
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
+              {/* Divider */}
+              <div className="border-t border-border"></div>
+
+              {/* Price Range Filter */}
+              <div>
+                <Label className="text-sm font-medium mb-3 block">
+                  Price Range
+                </Label>
+                <div className="space-y-4">
+                  <div className="text-center text-sm text-muted-foreground">
+                    £{priceRange[0]} - £{priceRange[1]}
+                  </div>
+                  <Slider
+                    value={priceRange}
+                    onValueChange={(value) => setPriceRange(value as [number, number])}
+                    min={0}
+                    max={maxPrice}
+                    step={10}
+                    className="w-full"
+                  />
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <Label htmlFor="min-price" className="text-xs text-muted-foreground">Min</Label>
+                      <Input
+                        id="min-price"
+                        type="number"
+                        value={priceRange[0]}
+                        onChange={(e) => {
+                          const newMin = Math.max(0, parseInt(e.target.value) || 0);
+                          setPriceRange([newMin, priceRange[1]]);
+                        }}
+                        className="h-8"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="max-price" className="text-xs text-muted-foreground">Max</Label>
+                      <Input
+                        id="max-price"
+                        type="number"
+                        value={priceRange[1]}
+                        onChange={(e) => {
+                          const newMax = Math.min(maxPrice, parseInt(e.target.value) || maxPrice);
+                          setPriceRange([priceRange[0], newMax]);
+                        }}
+                        className="h-8"
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
-            ) : !isPending && !isLoading && memoizedDisplayProducts.length === 0 && products.length > 0 ? (
-              <div className="text-center py-12 text-muted-foreground">
-                No products found matching your criteria.
+
+              {/* Reset Filters */}
+              <div className="space-y-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    handleCategoryChange('all');
+                    setPriceRange([0, maxPrice]);
+                  }}
+                  className="w-full"
+                >
+                  Reset All Filters
+                </Button>
               </div>
-            ) : !isLoading && products.length === 0 && !isPending ? (
-              <div className="text-center py-12 text-muted-foreground">
-                 No products available in this category or market currently.
-              </div>
-            ) : null}
-          </div>
+            </CardContent>
+          </Card>
         </div>
-      </main>
+
+        {/* Main Content Area */}
+        <div className="flex-1 min-w-0">
+          {/* Products Count and Market Info */}
+          <div className="mb-6 flex justify-between items-center">
+            <div>
+              <p className="text-sm text-muted-foreground">
+                {memoizedDisplayProducts.length} product{memoizedDisplayProducts.length !== 1 ? 's' : ''} found
+                {currentCategory !== 'all' && (
+                  <span className="ml-1">
+                    in {CATEGORIES.find(c => c.slug === currentCategory)?.name || currentCategory}
+                  </span>
+                )}
+              </p>
+              {(priceRange[0] > 0 || priceRange[1] < maxPrice) && (
+                <p className="text-xs text-muted-foreground">
+                  Price range: £{priceRange[0]} - £{priceRange[1]}
+                </p>
+              )}
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Market: {market.name}
+            </p>
+          </div>
+
+          {/* Products Grid */}
+          {memoizedDisplayProducts.length === 0 ? (
+            <Card className="max-w-md mx-auto">
+              <CardContent className="pt-6">
+                <div className="text-center">
+                  <h3 className="text-lg font-semibold mb-2">No Products Found</h3>
+                  <p className="text-muted-foreground mb-4">
+                    {currentCategory !== 'all' 
+                      ? `No products found in the ${CATEGORIES.find(c => c.slug === currentCategory)?.name || currentCategory} category.`
+                      : 'No products match your current filters.'
+                    }
+                  </p>
+                  <div className="space-y-2">
+                    {currentCategory !== 'all' && (
+                      <Button 
+                        variant="outline" 
+                        onClick={() => handleCategoryChange('all')}
+                      >
+                        View All Products
+                      </Button>
+                    )}
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setPriceRange([0, maxPrice])}
+                    >
+                      Reset Price Filter
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {memoizedDisplayProducts.map((product) => (
+                <ProductItemCard
+                  key={product.id}
+                  product={{
+                    id: product.id,
+                    code: product.attributes?.code || '',
+                    name: product.attributes?.name || '',
+                    description: product.attributes?.description || '',
+                    image_url: product.attributes?.image_url || null
+                  }}
+                  onViewDetailsClick={() => handleViewDetails(
+                    product.attributes?.code || '', 
+                    product.id
+                  )}
+                  className="h-full"
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
-}
+};
+
+export default Products;
