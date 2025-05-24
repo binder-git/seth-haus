@@ -10,13 +10,10 @@ export default function App() {
 
   // Initialize Commerce Layer Drop-in v2 configuration
   React.useEffect(() => {
-    // Set configuration that matches your successful curl command
+    // Set configuration using the simplified v2 format
     (window as any).commercelayerConfig = {
       clientId: "3uRXduKWJ8qr4G7lUBdrC1GFormL5Qa-RbFy-eCIGtA",
-      organization: "seth-s-triathlon-haus",
-      domain: "commercelayer.io",
-      scope: "market:id:vjzmJhvEDo",
-      debug: "all"
+      scope: "market:id:vjzmJhvEDo"
     };
 
     console.log('[App] Commerce Layer v2 config set:', (window as any).commercelayerConfig);
