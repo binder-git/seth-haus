@@ -1,57 +1,62 @@
 [build]
-  command = "npm run build" # This will run your root `npm run build` script
-  publish = "ui/dist"       # Where your built frontend files will be
-  functions = "netlify/functions/dist" # Where your built functions will be
+command = "npm run build"
+publish = "ui/dist"
+functions = "netlify/functions/dist"
 
 [dev]
-  framework = "#custom" # Use a custom command to start your UI
-  command = "npm run dev:ui" # This runs `cd ui && npm run dev`
-  targetPort = 5173        # The actual port Vite runs on (from ui/vite.config.ts)
-  publish = "ui"           # For local dev, serve from the UI source directory (not dist)
-  port = 8888              # The port Netlify Dev will listen on (what you open in browser)
-  functions = "netlify/functions/dist" # Functions will be served from here by Netlify Dev
+framework = "#custom"
+command = "npm run dev:ui"
+targetPort = 5173
+publish = "ui"
+port = 8888
+functions = "netlify/functions/dist"
 
-  [dev.environment]
-    # Environment variables available ONLY to Netlify Functions during `netlify dev`.
-    # These are pulled from your root .env file.
-    NODE_ENV = "development"
-    COMMERCE_LAYER_CLIENT_ID = "${COMMERCE_LAYER_CLIENT_ID}"
-    COMMERCE_LAYER_CLIENT_SECRET = "${COMMERCE_LAYER_CLIENT_SECRET}"
-    COMMERCE_LAYER_ORGANIZATION = "${COMMERCE_LAYER_ORGANIZATION}"
-    COMMERCE_LAYER_DOMAIN = "${COMMERCE_LAYER_DOMAIN}"
-    COMMERCE_LAYER_EU_SCOPE = "${COMMERCE_LAYER_EU_SCOPE}"
-    COMMERCE_LAYER_UK_SCOPE = "${COMMERCE_LAYER_UK_SCOPE}"
-    COMMERCE_LAYER_EU_SKU_LIST_ID = "${COMMERCE_LAYER_EU_SKU_LIST_ID}"
-    COMMERCE_LAYER_UK_SKU_LIST_ID = "${COMMERCE_LAYER_UK_SKU_LIST_ID}"
-    APP_TITLE = "${APP_TITLE}"
-    API_URL = "/.netlify/functions" # This is the internal URL your frontend will use to call functions
+[dev.environment]
+NODE_ENV = "development"
+COMMERCE_LAYER_CLIENT_ID = "${COMMERCE_LAYER_CLIENT_ID}"
+COMMERCE_LAYER_CLIENT_SECRET = "${COMMERCE_LAYER_CLIENT_SECRET}"
+COMMERCE_LAYER_ORGANIZATION = "${COMMERCE_LAYER_ORGANIZATION}"
+COMMERCE_LAYER_DOMAIN = "${COMMERCE_LAYER_DOMAIN}"
+COMMERCE_LAYER_EU_SCOPE = "${COMMERCE_LAYER_EU_SCOPE}"
+COMMERCE_LAYER_UK_SCOPE = "${COMMERCE_LAYER_UK_SCOPE}"
+COMMERCE_LAYER_EU_SKU_LIST_ID = "${COMMERCE_LAYER_EU_SKU_LIST_ID}"
+COMMERCE_LAYER_UK_SKU_LIST_ID = "${COMMERCE_LAYER_UK_SKU_LIST_ID}"
+APP_TITLE = "${APP_TITLE}"
+API_URL = "/.netlify/functions"
 
 [functions]
-  node_bundler = "esbuild"
-  external_node_modules = ["@commercelayer/sdk"]
-  included_files = ["netlify/functions/src/**", "!**/*.d.ts"] # Ensure this path is correct for your TS source files
+directory = "netlify/functions/dist"
+node_bundler = "esbuild"
+included_files = ["netlify/functions/src/**", "!**/*.d.ts"]
 
 [context.production]
-  command = "npm run build"
-  publish = "ui/dist"
-  functions = "netlify/functions/dist" # Ensure this points to the compiled functions output
+command = "npm run build"
+publish = "ui/dist"
+functions = "netlify/functions/dist"
 
-  [context.production.environment]
-    # Environment variables for Netlify Functions in production.
-    # These are sourced from Netlify UI's Environment Variables.
-    NODE_ENV = "production"
-    COMMERCE_LAYER_CLIENT_ID = "${COMMERCE_LAYER_CLIENT_ID}"
-    COMMERCE_LAYER_CLIENT_SECRET = "${COMMERCE_LAYER_CLIENT_SECRET}"
-    COMMERCE_LAYER_ORGANIZATION = "${COMMERCE_LAYER_ORGANIZATION}"
-    COMMERCE_LAYER_DOMAIN = "${COMMERCE_LAYER_DOMAIN}"
-    COMMERCE_LAYER_EU_SCOPE = "${COMMERCE_LAYER_EU_SCOPE}"
-    COMMERCE_LAYER_UK_SCOPE = "${COMMERCE_LAYER_UK_SCOPE}"
-    COMMERCE_LAYER_EU_SKU_LIST_ID = "${COMMERCE_LAYER_EU_SKU_LIST_ID}"
-    COMMERCE_LAYER_UK_SKU_LIST_ID = "${COMMERCE_LAYER_UK_SKU_LIST_ID}"
-    APP_TITLE = "${APP_TITLE}"
-    API_URL = "https://seth-haus.netlify.app/.netlify/functions" # Full URL for deployed functions
+[context.production.environment]
+NODE_ENV = "production"
+COMMERCE_LAYER_CLIENT_ID = "${COMMERCE_LAYER_CLIENT_ID}"
+COMMERCE_LAYER_CLIENT_SECRET = "${COMMERCE_LAYER_CLIENT_SECRET}"
+COMMERCE_LAYER_ORGANIZATION = "${COMMERCE_LAYER_ORGANIZATION}"
+COMMERCE_LAYER_DOMAIN = "${COMMERCE_LAYER_DOMAIN}"
+COMMERCE_LAYER_EU_SCOPE = "${COMMERCE_LAYER_EU_SCOPE}"
+COMMERCE_LAYER_UK_SCOPE = "${COMMERCE_LAYER_UK_SCOPE}"
+COMMERCE_LAYER_EU_SKU_LIST_ID = "${COMMERCE_LAYER_EU_SKU_LIST_ID}"
+COMMERCE_LAYER_UK_SKU_LIST_ID = "${COMMERCE_LAYER_UK_SKU_LIST_ID}"
+APP_TITLE = "${APP_TITLE}"
+API_URL = "https://seth-haus.netlify.app/.netlify/functions"
 
 [[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
+from = "/*"
+to = "/index.html"
+status = 200
+
+[[headers]]
+for = "/.netlify/functions/*"
+[headers.values]
+Access-Control-Allow-Origin = "http://localhost:5173"
+Access-Control-Allow-Headers = "Content-Type, Authorization"
+Access-Control-Allow-Methods = "GET, POST, PUT, DELETE, OPTIONS"
+Access-Control-Allow-Credentials = "true"
+Vary = "Origin, Access-Control-Request-Headers, Access-Control-Request-Method"

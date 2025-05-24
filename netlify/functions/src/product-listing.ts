@@ -1,19 +1,5 @@
 import { Handler, HandlerEvent, HandlerContext } from '@netlify/functions';
-import fetch from 'node-fetch';
-import dotenv from 'dotenv';
-import path from 'path';
-
-// Load environment variables from root .env file
-const envPath = path.resolve(process.cwd(), '../../.env');
-console.log(`[Debug] Loading environment variables from: ${envPath}`);
-
-const { parsed: envVars, error } = dotenv.config({ path: envPath });
-
-if (error) {
-    console.error('[Error] Failed to load .env file:', error);
-} else {
-    console.log('[Debug] Successfully loaded .env file');
-}
+import fetch from 'node-fetch'; // Keep this for now, if Node.js 18+ is not guaranteed or global fetch isn't preferred.
 
 // Debug log all environment variables (careful with sensitive data in production)
 console.log('[Debug] Process environment variables:', {
@@ -44,15 +30,15 @@ interface TagAttributes {
 }
 
 // Basic resource identifier for relationships
-interface RelationshipData {
+interface RelationshipData<T extends string> {
     id: string;
-    type: string; // e.g., 'prices', 'tags'
+    type: T; // Now 'type' will be a literal string like 'prices' or 'tags'
 }
 
 // Relationships object for a resource
 interface Relationships {
-    prices?: { data: RelationshipData[] };
-    tags?: { data: RelationshipData[] };
+    prices?: { data: RelationshipData<'prices'>[] };
+    tags?: { data: RelationshipData<'tags'>[] };
     // Add other relationships if necessary (e.g., 'sku_list')
 }
 
@@ -75,7 +61,7 @@ interface SkuResource {
     id: string;
     type: 'skus';
     attributes: SkuAttributes;
-    relationships?: Relationships;
+    relationships?: Relationships; // This now refers to the updated, more specific Relationships
 }
 
 // Commerce Layer API response structure for fetching SKUs
@@ -85,13 +71,11 @@ interface CommerceLayerSkuApiResponse {
 }
 
 // Concrete types for included resources
-interface PriceResource extends RelationshipData {
-    type: 'prices';
+interface PriceResource extends RelationshipData<'prices'> {
     attributes: PriceAttributes;
 }
 
-interface TagResource extends RelationshipData {
-    type: 'tags';
+interface TagResource extends RelationshipData<'tags'> {
     attributes: TagAttributes;
 }
 
@@ -107,13 +91,15 @@ interface TransformedProduct {
         price: string;
         currency_code: string;
         compare_at_amount: string | null;
+        formatted_compare_at_amount: string | null; // Added for completeness from PriceAttributes
         reference_origin: string;
         created_at: string;
         updated_at: string;
     };
+    // Ensure the relationships here also use the specific literal types
     relationships: {
-        prices: { data: { id: string; type: 'prices' }[] };
-        tags: { data: { id: string; type: 'tags' }[] };
+        prices: { data: RelationshipData<'prices'>[] };
+        tags: { data: RelationshipData<'tags'>[] };
     };
     tags?: { id: string; name: string; slug: string }[];
     category?: string;
@@ -125,23 +111,24 @@ interface ProductListingResponseBody {
     included: (PriceResource | TagResource)[];
 }
 
-// CORS headers
-const CORS_HEADERS = {
-    'Access-Control-Allow-Origin': 'http://localhost:5173',
+// CORS headers that will be applied to ALL responses
+const CORS_HEADERS: { [header: string]: string } = {
+    'Access-Control-Allow-Origin': 'http://localhost:5173', // Explicitly allow your frontend origin
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     'Access-Control-Allow-Methods': 'GET, OPTIONS',
-    'Access-Control-Allow-Credentials': 'true',
-    'Vary': 'Origin, Access-Control-Request-Headers, Access-Control-Request-Method'
+    'Access-Control-Allow-Credentials': 'true'
+    // 'Vary': 'Origin, Access-Control-Request-Headers, Access-Control-Request-Method' // Often not needed for simple GET/OPTIONS, can be added if issues persist
 };
 
 /**
- * Create a CORS response
+ * Create a CORS response helper.
+ * Ensures CORS headers are always present.
  */
-const createCorsResponse = (statusCode: number, body: object | null = null) => {
+const createCorsResponse = (statusCode: number, body: object | null = null): { statusCode: number; headers: { [header: string]: string }; body: string } => {
     return {
         statusCode,
         headers: {
-            ...CORS_HEADERS,
+            ...CORS_HEADERS, // Apply CORS headers
             'Content-Type': 'application/json'
         },
         body: body ? JSON.stringify(body) : ''
@@ -151,8 +138,38 @@ const createCorsResponse = (statusCode: number, body: object | null = null) => {
 /**
  * Handle OPTIONS request (CORS preflight)
  */
-const handleOptions = (): { statusCode: number; headers: object; body: string } => {
+const handleOptions = (): { statusCode: number; headers: { [header: string]: string }; body: string } => {
+    // For OPTIONS, we typically send a 204 No Content response with just the CORS headers
     return createCorsResponse(204);
+};
+
+// Custom error interface for network errors with a 'response' property
+interface HttpError extends Error {
+    response?: {
+        status?: number;
+        data?: any;
+        statusText?: string;
+    };
+}
+
+/**
+ * Parse and normalize market ID to handle Commerce Layer full market IDs
+ */
+const parseMarketId = (marketParam: string): string => {
+    const normalized = marketParam.toLowerCase();
+    
+    // Handle Commerce Layer full market IDs
+    if (normalized.includes('vjzmjhvedo') || normalized === 'uk') {
+        return 'uk';
+    }
+    
+    if (normalized.includes('eu') || normalized === 'europe') {
+        return 'eu';
+    }
+    
+    // Log unrecognized markets for debugging
+    console.warn(`[parseMarketId] Unrecognized market ID: ${marketParam}, defaulting to UK`);
+    return 'uk'; // Default fallback
 };
 
 async function getAccessToken(market: string): Promise<string> {
@@ -169,7 +186,7 @@ async function getAccessToken(market: string): Promise<string> {
     const clientId = process.env.COMMERCE_LAYER_CLIENT_ID;
     const clientSecret = process.env.COMMERCE_LAYER_CLIENT_SECRET;
     const organization = process.env.COMMERCE_LAYER_ORGANIZATION;
-    
+
     if (!clientId || !clientSecret || !organization) {
         const missing = [];
         if (!clientId) missing.push('COMMERCE_LAYER_CLIENT_ID');
@@ -177,7 +194,7 @@ async function getAccessToken(market: string): Promise<string> {
         if (!organization) missing.push('COMMERCE_LAYER_ORGANIZATION');
         throw new Error(`Missing required Commerce Layer credentials: ${missing.join(', ')}`);
     }
-    
+
     // Determine the scope based on the market
     let scope;
     if (market === 'eu') {
@@ -187,21 +204,21 @@ async function getAccessToken(market: string): Promise<string> {
     } else {
         throw new Error('Invalid market specified. Must be "eu" or "uk"');
     }
-    
+
     if (!scope) {
         throw new Error(`Missing scope for market: ${market}`);
     }
 
     try {
         console.log(`[getAccessToken] Requesting token for market: ${market}`);
-        
+
         const authUrl = 'https://auth.commercelayer.io/oauth/token';
-        
+
         // Log the first few characters of client ID and secret (for debugging)
         console.log(`[getAccessToken] Client ID: ${clientId ? `${clientId.substring(0, 4)}...` : 'not set'}`);
         console.log(`[getAccessToken] Client Secret: ${clientSecret ? '***' : 'not set'}`);
         console.log(`[getAccessToken] Scope: ${scope}`);
-        
+
         // Create the request body as a string to match the curl command
         const requestBody = new URLSearchParams({
             grant_type: 'client_credentials',
@@ -209,7 +226,7 @@ async function getAccessToken(market: string): Promise<string> {
             client_secret: clientSecret,
             scope: scope
         }).toString();
-        
+
         // Log the request details (without sensitive data)
         console.log('[getAccessToken] Request details:', {
             url: authUrl,
@@ -225,7 +242,7 @@ async function getAccessToken(market: string): Promise<string> {
                 scope: scope
             }
         });
-        
+
         // Make the request with form-encoded body
         const response = await fetch(authUrl, {
             method: 'POST',
@@ -235,11 +252,11 @@ async function getAccessToken(market: string): Promise<string> {
             },
             body: requestBody
         });
-        
+
         const responseText = await response.text();
         console.log(`[getAccessToken] Response status: ${response.status} ${response.statusText}`);
         console.log(`[getAccessToken] Response body:`, responseText);
-        
+
         if (!response.ok) {
             console.error('[getAccessToken] Authentication failed. Please verify:');
             console.error('1. Client ID and Secret are correct in your .env file');
@@ -247,57 +264,60 @@ async function getAccessToken(market: string): Promise<string> {
             console.error('3. The organization slug is correct');
             throw new Error(`Failed to get access token: ${response.status} ${response.statusText} - ${responseText}`);
         }
-        
+
         let data;
         try {
             data = JSON.parse(responseText);
-        } catch (e) {
+        } catch (e: unknown) { // Type 'unknown'
             console.error(`[getAccessToken] Failed to parse JSON response:`, e);
-            throw new Error(`Failed to parse token response: ${e.message}`);
+            if (e instanceof Error) { // Type guard
+                throw new Error(`Failed to parse token response: ${e.message}`);
+            }
+            throw new Error(`Failed to parse token response: ${String(e)}`);
         }
-        
+
         if (!data.access_token) {
             console.error('[getAccessToken] No access_token in response:', data);
             throw new Error('No access token in response');
         }
-        
+
         console.log('[getAccessToken] Successfully obtained access token');
         return data.access_token;
-    } catch (error) {
+    } catch (error: unknown) { // Type 'unknown'
         console.error('[getAccessToken] Error details:', {
-            message: error.message,
-            stack: error.stack,
-            response: error.response
+            message: error instanceof Error ? error.message : 'Unknown error message',
+            stack: error instanceof Error ? error.stack : 'No stack available',
+            response: (error as HttpError).response // Cast to HttpError to safely access response
         });
         throw error;
     }
 }
 
-async function getSkus(accessToken: string, skuListId: string, tag: string | null = null, includeTags: boolean = true): Promise<object> {
+async function getSkus(accessToken: string, skuListId: string, tag: string | null = null, includeTags: boolean = true): Promise<CommerceLayerSkuApiResponse> {
     const organization = process.env.COMMERCE_LAYER_ORGANIZATION;
-    
+
+    if (!organization) {
+        throw new Error('COMMERCE_LAYER_ORGANIZATION environment variable is not set.');
+    }
+
     try {
-        // Build the SKUs URL with proper filtering
+        // Fetch SKUs directly (simplified approach to avoid permissions issues)
         const skusUrl = new URL(`https://${organization}.commercelayer.io/api/skus`);
-        
-        // Filter by SKU list ID using the SKU list relationship
-        skusUrl.searchParams.append('filter[sku_list_id_eq]', skuListId);
         
         // Add tag filter if provided
         if (tag) {
-            skusUrl.searchParams.append('filter[tags_cont_any]', tag);
+            skusUrl.searchParams.append('filter[tags_name_cont]', tag);
         }
-        
-        // Set up includes - only include prices and tags
+
+        // Set up includes
         const includes = ['prices', 'tags'];
         skusUrl.searchParams.append('include', includes.join(','));
-        console.log(`[Debug] Include parameters: ${includes.join(',')}`);
-        
+
         // Define fields for each resource type
         const fields = {
             skus: [
-                'id', 'code', 'name', 'description', 'reference', 
-                'reference_origin', 'created_at', 'updated_at', 
+                'id', 'code', 'name', 'description', 'reference',
+                'reference_origin', 'created_at', 'updated_at',
                 'image_url', 'metadata', 'tags'
             ],
             prices: [
@@ -308,18 +328,18 @@ async function getSkus(accessToken: string, skuListId: string, tag: string | nul
                 'id', 'name', 'metadata', 'created_at', 'updated_at'
             ]
         };
-        
+
         // Add sparse fieldsets
         Object.entries(fields).forEach(([type, fieldList]) => {
             skusUrl.searchParams.append(`fields[${type}]`, fieldList.join(','));
         });
-        
+
         // Set page size and sorting
         skusUrl.searchParams.append('page[size]', '25');
-        skusUrl.searchParams.append('sort', '-created_at'); // Sort by newest first
-        
-        console.log(`[Featured Products] Fetching SKUs from: ${skusUrl.toString()}`);
-        
+        skusUrl.searchParams.append('sort', '-created_at');
+
+        console.log(`[getSkus] Fetching SKUs from: ${skusUrl.toString()}`);
+
         const response = await fetch(skusUrl.toString(), {
             headers: {
                 'Authorization': `Bearer ${accessToken}`,
@@ -327,147 +347,145 @@ async function getSkus(accessToken: string, skuListId: string, tag: string | nul
                 'Content-Type': 'application/vnd.api+json'
             }
         });
-        
+
         if (!response.ok) {
             const errorText = await response.text();
-            throw new Error(`Failed to fetch SKUs: ${response.status} ${response.statusText} - ${errorText}`);
+            const httpError: HttpError = new Error(`Failed to fetch SKUs: ${response.status} ${response.statusText}`);
+            httpError.response = { status: response.status, statusText: response.statusText, data: errorText };
+            throw httpError;
         }
-        
-        return await response.json();
-    } catch (error) {
-        console.error('[Featured Products] Error in getSkus:', error);
+
+        return await response.json() as CommerceLayerSkuApiResponse;
+    } catch (error: unknown) {
+        console.error('[getSkus] Error in getSkus:', error);
         throw error;
     }
 }
 
+/**
+ * Netlify function handler for product listing.
+ * This is the main entry point that Netlify will call.
+ */
 export const handler: Handler = async (event: HandlerEvent, context: HandlerContext) => {
-    console.log('[Product Listing] Handler called:', {
-        path: event.path,
-        method: event.httpMethod,
-        query: event.queryStringParameters,
-        headers: JSON.stringify(event.headers, null, 2)
-    });
-
-    // Handle CORS preflight
+    // Handle OPTIONS request for CORS preflight
     if (event.httpMethod === 'OPTIONS') {
-        console.log('[Handler] Handling OPTIONS preflight request');
         return handleOptions();
-    }
-    
-    // Ensure we only handle GET requests
-    if (event.httpMethod !== 'GET') {
-        console.log(`[Handler] Method not allowed: ${event.httpMethod}`);
-        return createCorsResponse(405, {
-            status: 'error',
-            message: 'Method not allowed. Only GET and OPTIONS are supported.'
-        });
     }
 
     try {
-        // Get market from query parameters
-        const market = event.queryStringParameters?.market?.toLowerCase();
-        if (!market) {
-            throw new Error('Market parameter is required');
+        const marketParam = event.queryStringParameters?.market;
+        const tag = event.queryStringParameters?.tag; // Optional tag parameter
+
+        if (!marketParam) {
+            console.error('[product-listing] Missing market query parameter');
+            return createCorsResponse(400, { message: 'Missing market query parameter' });
         }
 
-        // Get SKU list ID based on market
-        const skuListId = market === 'uk' 
-            ? process.env.COMMERCE_LAYER_UK_SKU_LIST_ID 
-            : process.env.COMMERCE_LAYER_EU_SKU_LIST_ID;
+        console.log(`[product-listing] Received request for market: ${marketParam}, tag: ${tag || 'none'}`);
+
+        // Parse and normalize the market ID
+        const market = parseMarketId(marketParam);
+        console.log(`[product-listing] Normalized market from '${marketParam}' to '${market}'`);
+
+        let skuListId: string | undefined;
+        // Determine the SKU list ID based on the normalized market
+        if (market === 'uk') {
+            skuListId = process.env.COMMERCE_LAYER_UK_SKU_LIST_ID;
+        } else if (market === 'eu') {
+            skuListId = process.env.COMMERCE_LAYER_EU_SKU_LIST_ID;
+        }
 
         if (!skuListId) {
-            throw new Error(`No SKU list ID configured for market: ${market}`);
+            console.error(`[product-listing] No SKU list ID found for market: ${market} (original: ${marketParam})`);
+            return createCorsResponse(500, { message: `No SKU list ID configured for market: ${market}` });
         }
 
-        // Get category from query parameters if provided
-        const category = event.queryStringParameters?.category?.toLowerCase();
-        
-        // Get access token for the market
         const accessToken = await getAccessToken(market);
-        
-        // Fetch SKUs with optional category filter and include tags
-        const skusData: CommerceLayerSkuApiResponse = await getSkus(accessToken, skuListId, category, true);
-        
-        console.log(`[Product Listing] Fetched ${skusData.data.length} products for market ${market}` + 
-                   (category ? `, filtered by tag: ${category}` : ''));
-        
-        // Transform the data into the expected format
-        const products: TransformedProduct[] = skusData.data.map(sku => {
-            // Generate local image path based on SKU code or reference
-            const skuCode = sku.attributes.code || sku.attributes.reference || sku.id;
-            const imageUrl = `/migrated-assets/${skuCode}.jpg`;
-            
-            // Find the default price for this SKU
-            const price = skusData.included?.find(
-                (item): item is PriceResource => 
-                    item.type === 'prices' && 
-                    sku.relationships?.prices?.data.some(p => p.id === item.id)
-            );
+        const skuResponse = await getSkus(accessToken, skuListId, tag);
 
-            // Get all tags for this SKU
-            const tags = (skusData.included || [])
-                .filter((item): item is TagResource => 
-                    item.type === 'tags' && 
-                    sku.relationships?.tags?.data.some(t => t.id === item.id)
-                )
-                .map(tag => ({
-                    id: tag.id,
-                    name: tag.attributes.name,
-                    slug: tag.attributes.name.toLowerCase().replace(/\s+/g, '-')
-                }));
+        // Debug: Log the raw SKU data to understand the structure
+        console.log('[product-listing] Raw SKU data (first item):', JSON.stringify(skuResponse.data[0], null, 2));
+        if (skuResponse.data[0]) {
+            console.log('[product-listing] First SKU attributes:', skuResponse.data[0].attributes);
+            console.log('[product-listing] First SKU code:', skuResponse.data[0].attributes?.code);
+            console.log('[product-listing] First SKU name:', skuResponse.data[0].attributes?.name);
+        }
 
-            // For backward compatibility, include the first tag as category
-            const firstTag = tags[0];
-            const productCategory = firstTag ? firstTag.slug : '';
-            
-            return {
+        // Transform SKUs for the frontend
+        const transformedProducts: TransformedProduct[] = skuResponse.data.map(sku => {
+            // Find the primary price (you might have more complex logic here)
+            const priceRelationship = sku.relationships?.prices?.data?.[0];
+            const priceResource = priceRelationship
+                ? skuResponse.included?.find(item => item.id === priceRelationship.id && item.type === 'prices') as PriceResource
+                : undefined;
+
+            // Handle both possible data structures for SKU attributes
+            const code = sku.attributes?.code || '';
+            const name = sku.attributes?.name || '';
+            const description = sku.attributes?.description || '';
+            const image_url = sku.attributes?.image_url || '';
+            const reference_origin = sku.attributes?.reference_origin || '';
+            const created_at = sku.attributes?.created_at || '';
+            const updated_at = sku.attributes?.updated_at || '';
+
+            console.log(`[product-listing] Processing SKU: ${code} - ${name}`);
+
+            const transformedProduct: TransformedProduct = {
                 id: sku.id,
                 type: 'skus',
                 attributes: {
-                    code: sku.attributes.code || sku.id,
-                    name: sku.attributes.name || 'Unnamed Product',
-                    description: sku.attributes.description || '',
-                    image_url: imageUrl,
-                    price: price?.attributes?.formatted_amount || '0',
-                    currency_code: price?.attributes?.currency_code || 'USD',
-                    compare_at_amount: price?.attributes?.formatted_compare_at_amount || null,
-                    reference_origin: sku.attributes.reference_origin || 'commercelayer',
-                    created_at: sku.attributes.created_at || new Date().toISOString(),
-                    updated_at: sku.attributes.updated_at || new Date().toISOString()
+                    code: code,
+                    name: name,
+                    description: description,
+                    image_url: image_url,
+                    price: priceResource?.attributes.formatted_amount || 'N/A',
+                    currency_code: priceResource?.attributes.currency_code || 'N/A',
+                    compare_at_amount: priceResource?.attributes.compare_at_amount_float?.toString() || null,
+                    formatted_compare_at_amount: priceResource?.attributes.formatted_compare_at_amount || null,
+                    reference_origin: reference_origin,
+                    created_at: created_at,
+                    updated_at: updated_at,
                 },
                 relationships: {
                     prices: sku.relationships?.prices || { data: [] },
-                    tags: sku.relationships?.tags || { data: [] }
+                    tags: sku.relationships?.tags || { data: [] },
                 },
-                ...(tags.length > 0 && { tags }),
-                ...(productCategory && { category: productCategory })
-            } as TransformedProduct;
+                // Optionally add tags here if you want them transformed and directly on the product object
+                tags: sku.relationships?.tags?.data.map(tagData => {
+                    const tagResource = skuResponse.included?.find(item => item.id === tagData.id && item.type === 'tags') as TagResource;
+                    return tagResource ? { id: tagResource.id, name: tagResource.attributes.name, slug: tagResource.id } : undefined; // Assuming slug is ID for simplicity
+                }).filter(Boolean) as { id: string; name: string; slug: string }[] || [],
+                // category: ... (add category logic if needed, e.g., from tags or metadata)
+            };
+            return transformedProduct;
         });
 
-        // Prepare included resources (prices and tags)
-        const included: (PriceResource | TagResource)[] = [
-            ...(skusData.included || [])
-        ];
+        console.log(`[product-listing] Successfully fetched and transformed ${transformedProducts.length} products.`);
+        console.log('[product-listing] First transformed product:', JSON.stringify(transformedProducts[0], null, 2));
+        
+        return createCorsResponse(200, { products: transformedProducts, included: skuResponse.included || [] });
 
-        console.log(`[Product Listing] Returning ${products.length} products`);
-        
-        // Return the response in the format expected by the frontend
-        return createCorsResponse(200, {
-            products,
-            included
-        } as ProductListingResponseBody);
-        
-    } catch (error) {
-        console.error('[Product Listing] Error:', error);
-        return createCorsResponse(error.response?.status || 500, {
-            status: 'error',
-            message: error.message || 'Internal server error',
-            ...(process.env.NODE_ENV === 'development' && {
-                stack: error.stack,
-                details: error.response?.data
-            })
-        });
+    } catch (error: unknown) {
+        console.error('[product-listing] Error in handler:', error);
+        let errorMessage = 'An unexpected error occurred.';
+        let statusCode = 500;
+
+        if (error instanceof Error) {
+            errorMessage = error.message;
+            const httpError = error as HttpError; // Cast to HttpError
+            if (httpError.response?.status) {
+                statusCode = httpError.response.status;
+                // For 4xx errors, we might want to return the actual error message from the upstream API
+                if (statusCode >= 400 && statusCode < 500 && httpError.response.data) {
+                    try {
+                        errorMessage = JSON.parse(httpError.response.data).errors?.map((err: any) => err.detail).join(', ') || errorMessage;
+                    } catch (e) {
+                        // Fallback if parsing upstream error data fails
+                        errorMessage = httpError.response.data;
+                    }
+                }
+            }
+        }
+        return createCorsResponse(statusCode, { message: `Function error: ${errorMessage}` });
     }
 };
-
-export default handler;

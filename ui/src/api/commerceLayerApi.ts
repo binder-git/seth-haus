@@ -13,9 +13,15 @@ export interface Product {
 
 class CommerceLayerApi {
   private marketId: string;
+  // Define apiBasePath here so it's accessible throughout the class
+  private apiBasePath: string;
 
   constructor(marketId: string = 'UK') {
     this.marketId = marketId;
+    // Use the VITE_API_BASE_PATH from your .env file
+    // In local dev, this will be "/.netlify/functions"
+    // In production/build, this would typically resolve to "" or the actual path if deployed to Netlify
+    this.apiBasePath = import.meta.env.VITE_API_BASE_PATH;
   }
 
   /**
@@ -30,21 +36,19 @@ class CommerceLayerApi {
    * Calls the 'featured-products' Netlify function
    */
   async getFeaturedProducts(category?: string): Promise<{ products: Product[] }> {
-    // Use a fixed URL for local function development, as netlify dev won't proxy.
-    // This assumes your function server runs on http://localhost:9999
-    const baseUrl = import.meta.env.DEV ? 'http://localhost:9999/.netlify/functions' : '';
-    
     const params = new URLSearchParams({
       market: this.marketId.toLowerCase(),
       ...(category && { category })
     });
 
     try {
-      // The full path including /.netlify/functions/ is needed when NOT proxied by netlify dev
-      const url = `${baseUrl}/featured-products?${params.toString()}`;
-      console.log(`[CommerceLayerApi] Fetching featured products from: ${url}`);
+      // CRUCIAL CHANGE: Use the relative apiBasePath.
+      // The URL constructor correctly combines it with window.location.origin
+      // if apiBasePath is a relative path (like "/.netlify/functions").
+      const url = new URL(`${this.apiBasePath}/featured-products?${params.toString()}`, window.location.origin);
+      console.log(`[CommerceLayerApi] Fetching featured products from: ${url.toString()}`); // Use .toString() for clarity
       
-      const response = await fetch(url, {
+      const response = await fetch(url.toString(), { // Fetch expects a string
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json'
@@ -59,10 +63,9 @@ class CommerceLayerApi {
 
       const responseData = await response.json();
       console.log('[CommerceLayerApi] Raw responseData from Netlify function:', responseData);
-      // Keep looking for 'data' key based on past consistent behavior
       console.log(`[CommerceLayerApi] responseData.data length: ${responseData.data?.length || 0}`);
       
-      return { products: responseData.data || [] }; // Still expecting 'data'
+      return { products: responseData.data || [] };
     } catch (error) {
       console.error('Error fetching featured products:', error);
       throw error;
@@ -84,9 +87,6 @@ class CommerceLayerApi {
     page: number;
     totalPages: number;
   }> {
-    // Use a fixed URL for local function development
-    const baseUrl = import.meta.env.DEV ? 'http://localhost:9999/.netlify/functions' : '';
-    
     const params = new URLSearchParams({
       market: this.marketId.toLowerCase(),
       ...(options.category && { category: options.category }),
@@ -96,11 +96,12 @@ class CommerceLayerApi {
     });
 
     try {
-      const url = `${baseUrl}/product-listing?${params.toString()}`;
-      console.log(`[CommerceLayerApi] Fetching product listing from: ${url}`);
+      // CRUCIAL CHANGE: Use the relative apiBasePath here too.
+      const url = new URL(`${this.apiBasePath}/product-listing?${params.toString()}`, window.location.origin);
+      console.log(`[CommerceLayerApi] Fetching product listing from: ${url.toString()}`);
 
       const response = await fetch(
-        url,
+        url.toString(), // Fetch expects a string
         {
           headers: {
             'Accept': 'application/json',
@@ -114,7 +115,28 @@ class CommerceLayerApi {
         throw new Error(errorData.message || `Failed to fetch product listing: ${response.statusText}`);
       }
 
-      return await response.json();
+      const responseData = await response.json();
+      console.log('[CommerceLayerApi] Raw product listing response:', responseData);
+
+      // Transform the nested structure to flat structure expected by frontend
+      const transformedProducts = responseData.products?.map((product: any) => ({
+        id: product.id,
+        code: product.attributes?.code || '',
+        name: product.attributes?.name || '',
+        description: product.attributes?.description || '',
+        image_url: product.attributes?.image_url || null,
+        price: product.attributes?.price || 'N/A',
+        currency: product.attributes?.currency_code || 'N/A'
+      })) || [];
+
+      console.log('[CommerceLayerApi] Transformed products:', transformedProducts);
+
+      return {
+        products: transformedProducts,
+        total: transformedProducts.length,
+        page: 1,
+        totalPages: 1
+      };
     } catch (error) {
       console.error('Error fetching product listing:', error);
       throw error;
