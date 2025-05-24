@@ -22,6 +22,8 @@ export const MarketSwitcher = ({
   selectedMarket,
   onMarketChange
 }: MarketSwitcherProps) => {
+  const currentMarket = selectedMarket || MARKETS.UK;
+
   const handleMarketChange = (marketName: MarketName) => {
     // Use the MARKETS constant for market data
     const newMarket: Market = marketName === 'UK'
@@ -42,8 +44,8 @@ export const MarketSwitcher = ({
     onMarketChange(newMarket);
   };
 
-  // Ensure display text is consistent with market name from selectedMarket
-  const displayMarket = selectedMarket.name === "UK" ? "🇬🇧 UK (£)" : "🇪🇺 EU (€)";
+  // Ensure display text is consistent with market name from currentMarket
+  const displayMarket = currentMarket.name === "UK" ? "🇬🇧 UK (£)" : "🇪🇺 EU (€)";
 
   return (
     <DropdownMenu>
@@ -57,13 +59,13 @@ export const MarketSwitcher = ({
       <DropdownMenuContent align="end">
         <DropdownMenuItem
           onClick={() => handleMarketChange("UK")}
-          disabled={selectedMarket.name === "UK"}
+          disabled={currentMarket.name === "UK"}
         >
           🇬🇧 UK (GBP £)
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => handleMarketChange("EU")}
-          disabled={selectedMarket.name === "EU"}
+          disabled={currentMarket.name === "EU"}
         >
           🇪🇺 EU (EUR €)
         </DropdownMenuItem>

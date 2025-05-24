@@ -3,22 +3,18 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "Seth's Triathlon Haus - E-commerce site with Commerce Layer",
-  "workspaces": [
-    "ui",
-    "netlify/functions"
-  ],
+  "description": "Seth's Triathlon Haus - An ecommerce prototype powered by Commerce Layer and Netlify",
   "engines": {
     "node": ">=18.0.0",
     "npm": ">=8.0.0"
   },
   "scripts": {
     "dev": "netlify dev",
-    "dev:ui": "npm run dev --workspace=ui",
-    "dev:functions": "npm run dev --workspace=netlify/functions",
-    "build": "npm run build --workspace=ui && npm run build --workspace=netlify/functions",
-    "build:ui": "npm run build --workspace=ui",
-    "build:functions": "npm run build --workspace=netlify/functions",
+    "dev:ui": "cd ui && npm run dev",
+    "dev:functions": "cd netlify/functions && npm run dev",
+    "build": "cd ui && npm run build && cd ../netlify/functions && npm run build",
+    "build:ui": "cd ui && npm run build",
+    "build:functions": "cd netlify/functions && npm run build",
     "start": "netlify dev"
   },
   "dependencies": {

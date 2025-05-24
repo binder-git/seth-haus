@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 // Removed Badge as 'In Stock/Out of Stock' badge is removed
 import { cn } from "utils/cn";
+
 // Updated ProductResponse type to reflect changes in featured-products.ts
 // Make sure this matches the Product type in your Netlify function's response
 export type ProductResponse = {
@@ -27,9 +28,20 @@ export interface Props {
 
 const ProductItemCardComponent = ({ product, className = "", onViewDetailsClick }: Props) => {
 
+  // Safely extract product data with fallbacks for undefined values
+  const productCode = product?.code || 'unknown';
+  const productName = product?.name || 'Unknown Product';
+  const productDescription = product?.description || 'No description available.';
+  const productPrice = product?.price || 'Price not available';
+
   // Determine the image URL based on local assets and product.code
   const getImageUrl = (): string => {
-    return `/migrated-assets/${product.code}.jpg`;
+    // Only use the product code if it's defined and not empty
+    if (productCode && productCode !== 'unknown' && productCode.trim() !== '') {
+      return `/migrated-assets/${productCode}.jpg`;
+    }
+    // If no valid product code, go straight to fallback
+    return '/migrated-assets/no-image.jpg';
   };
 
   const imageUrl = getImageUrl();
@@ -38,17 +50,34 @@ const ProductItemCardComponent = ({ product, className = "", onViewDetailsClick 
   // Make sure you have a 'no-image.jpg' file in your 'public/migrated-assets' folder.
   const fallbackImageUrl = '/migrated-assets/no-image.jpg';
 
-  // Handle image loading errors
+  // Handle image loading errors with infinite loop prevention
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-    const target = e.target as HTMLImageElement;
-    if (target.src !== fallbackImageUrl) {
-      target.onerror = null;
-      target.src = fallbackImageUrl;
-      console.warn(`Image for product '${product.name}' (code: ${product.code}) not found at '${imageUrl}'. Falling back to: '${fallbackImageUrl}'`);
-    } else {
-      console.error(`Double image load error for product '${product.name}'. Failed to load even fallback image: '${e.currentTarget.src}'`);
+    const target = e.currentTarget;
+    
+    // Prevent infinite loops by checking if we're already showing the fallback
+    if (target.src.includes('no-image.jpg')) {
+      console.error(`Fallback image also failed to load for product '${productName}' (code: ${productCode}). Image path: ${target.src}`);
+      target.onerror = null; // Prevent further error events
+      return;
     }
+    
+    // Log the error for debugging
+    console.log(`Image for product '${productName}' (code: ${productCode}) not found at '${target.src}'. Falling back to: '${fallbackImageUrl}'`);
+    
+    // Set fallback image and prevent further error events on this attempt
+    target.onerror = null;
+    target.src = fallbackImageUrl;
   };
+
+  // Debug logging for undefined product data
+  if (!product || !product.code || !product.name) {
+    console.warn('[ProductItemCard] Product data is incomplete:', {
+      hasProduct: !!product,
+      code: product?.code,
+      name: product?.name,
+      fullProduct: product
+    });
+  }
 
   return (
     <Card
@@ -63,7 +92,7 @@ const ProductItemCardComponent = ({ product, className = "", onViewDetailsClick 
          >
           <img
             src={imageUrl}
-            alt={product.name || 'Product image'}
+            alt={productName}
             className="w-full h-48 object-cover"
             onError={handleImageError}
             loading="lazy"
@@ -73,20 +102,20 @@ const ProductItemCardComponent = ({ product, className = "", onViewDetailsClick 
       <CardHeader >
         <CardTitle
           className="text-lg font-semibold tracking-tight truncate hover:text-primary transition-colors"
-          title={product.name}
+          title={productName}
         >
-            {product.name}
+            {productName}
         </CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col flex-grow p-4">
-        <p className="text-sm text-muted-foreground flex-grow mb-4 line-clamp-3" title={product.description || ""}>
-          {product.description || "No description available."}
+        <p className="text-sm text-muted-foreground flex-grow mb-4 line-clamp-3" title={productDescription}>
+          {productDescription}
         </p>
 
         {/* --- Streamlined display: Only price and View Details button --- */}
         <div className="flex justify-between items-center mt-auto mb-4">
           <p className="text-lg font-bold">
-            {product.price || "Price not available"}
+            {productPrice}
           </p>
           {/* Removed the Badge here as it's not relevant without inventory data */}
         </div>
@@ -97,7 +126,7 @@ const ProductItemCardComponent = ({ product, className = "", onViewDetailsClick 
                 variant="outline"
                 className="w-full"
                 onClick={(e) => {
-                  console.log("[ProductItemCard] 'View Details' button clicked.");
+                  console.log(`[ProductItemCard] 'View Details' button clicked for product: ${productName} (${productCode})`);
                    e.stopPropagation();
                    onViewDetailsClick();
                  }}

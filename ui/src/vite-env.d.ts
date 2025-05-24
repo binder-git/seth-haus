@@ -1,36 +1,45 @@
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {
-  // Environment
+  // Environment (Vite's default)
   readonly NODE_ENV: 'development' | 'production' | 'test';
   readonly MODE: 'development' | 'production' | 'test';
   readonly DEV: boolean;
   readonly PROD: boolean;
   
-  // Commerce Layer
-  readonly COMMERCE_LAYER_CLIENT_ID: string;
-  readonly COMMERCE_LAYER_CLIENT_SECRET?: string;
-  readonly COMMERCE_LAYER_ORGANIZATION: string;
-  readonly COMMERCE_LAYER_DOMAIN: string;
-  readonly COMMERCE_LAYER_EU_SCOPE: string;
-  readonly COMMERCE_LAYER_UK_SCOPE: string;
-  readonly COMMERCE_LAYER_EU_SKU_LIST_ID: string;
-  readonly COMMERCE_LAYER_UK_SKU_LIST_ID: string;
+  // Custom Environment Variables (MUST match VITE_ prefix in .env and usage)
+  readonly VITE_API_BASE_PATH: string;
+  readonly VITE_COMMERCE_LAYER_PUBLIC_CLIENT_ID: string;
+  readonly VITE_COMMERCE_LAYER_ORGANIZATION_SLUG: string;
+
+  // If you are still using these directly, you might need to add their VITE_ counterparts,
+  // but prioritize the ones we've explicitly added to .env and commerceLayerApi.ts
+  // readonly VITE_COMMERCE_LAYER_CLIENT_ID: string; // If you plan to use this directly
+  // readonly VITE_COMMERCE_LAYER_CLIENT_SECRET?: string; // Should NOT be on frontend!
+  // readonly VITE_COMMERCE_LAYER_ORGANIZATION: string; // Use VITE_COMMERCE_LAYER_ORGANIZATION_SLUG
+  // readonly VITE_COMMERCE_LAYER_DOMAIN: string;
+  // readonly VITE_COMMERCE_LAYER_EU_SCOPE: string;
+  // readonly VITE_COMMERCE_LAYER_UK_SCOPE: string;
+  // readonly VITE_COMMERCE_LAYER_EU_SKU_LIST_ID: string;
+  // readonly VITE_COMMERCE_LAYER_UK_SKU_LIST_ID: string;
   
   // App Configuration
-  readonly APP_TITLE: string;
-  readonly APP_ID?: string;
-  readonly APP_FAVICON_LIGHT?: string;
-  readonly APP_FAVICON_DARK?: string;
+  readonly VITE_APP_TITLE: string; // Assuming you'd prefix this
+  readonly VITE_APP_ID?: string;
+  readonly VITE_APP_FAVICON_LIGHT?: string;
+  readonly VITE_APP_FAVICON_DARK?: string;
   
   // API Configuration
-  readonly API_URL: string;
-  readonly WS_API_URL?: string;
+  // If API_URL was meant to be VITE_API_BASE_PATH, consolidate it.
+  // readonly VITE_API_URL: string; // Or remove if VITE_API_BASE_PATH is the only one
+  // readonly VITE_WS_API_URL?: string;
 }
 
 declare global {
   namespace NodeJS {
-    interface ProcessEnv extends ImportMetaEnv {}
+    // This part is typically for Node.js environments (like Netlify Functions or backend)
+    // and might not be strictly necessary for your frontend only, but doesn't hurt.
+    interface ProcessEnv extends ImportMetaEnv {} 
   }
 }
 

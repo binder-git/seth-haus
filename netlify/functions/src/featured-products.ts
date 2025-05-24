@@ -1,42 +1,74 @@
-// /Users/seth/seth-haus/netlify/functions/featured-products.ts
+// /Users/seth/seth-haus/netlify/functions/src/featured-products.ts
 
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 import { dirname, resolve } from 'path';
-// Keep these types for the structure of the API response, even without the SDK
-import type { Sku, Price } from '@commercelayer/sdk';
+
+// Import custom types from your local types.ts file
+import type {
+  HandlerResponse,
+  HandlerEvent,
+  HandlerContext,
+  Price,
+  CLSKU
+} from './types.js';
 
 // Load environment variables from .env file
 const currentFileUrl = import.meta.url;
 const currentDir = dirname(fileURLToPath(currentFileUrl));
 dotenv.config({ path: resolve(currentDir, '../../../.env') });
 
-// Import shared types
-import type {
-  HandlerResponse,
-  HandlerEvent,
-  HandlerContext
-} from './types.js';
-
-// Commerce Layer SDK types (used for structure reference, not for SDK calls)
-type CommerceLayerPrice = Price & {
-  price_list?: {
-    id: string;
-    type: string;
+// Define the SkuResource interface to match Commerce Layer API structure
+interface SkuResource {
+  id: string;
+  type: 'skus';
+  code: string;
+  name: string;
+  description: string;
+  image_url?: string;
+  relationships?: {
+    prices?: {
+      data: Array<{ id: string; type: 'prices' }>;
+    };
+    images?: {
+      data: Array<{ id: string; type: 'images' }>;
+    };
   };
-};
+}
 
-// Extend the base Sku type with additional relations (removed inventory for listing page)
-interface SkuWithRelations extends Omit<Sku, 'prices'> {
-  prices?: CommerceLayerPrice[];
+// Extend the base CLSKU type with additional relations
+interface SkuWithRelations extends Omit<CLSKU, 'prices'> {
+  prices?: Price[];
   images?: Array<{
     id: string;
     url: string;
   }>;
-  // No need for inventory relationships here as we are not including them in the API call for listings
 }
 
-// Define local type for the transformed product (Removed 'available' and 'quantity')
+interface PriceResource {
+  id: string;
+  type: 'prices';
+  attributes: {
+    formatted_amount: string;
+    currency_code: string;
+    amount_float: number;
+  };
+}
+
+interface ImageResource {
+  id: string;
+  type: 'images';
+  attributes: {
+    url: string;
+    filename: string;
+  };
+}
+
+interface CommerceLayerSkuApiResponse {
+  data: SkuResource[];
+  included?: (PriceResource | ImageResource)[];
+}
+
 type Product = {
   id: string;
   code: string;
@@ -45,7 +77,6 @@ type Product = {
   image_url: string | null;
   price: string;
   currency: string;
-  // 'available' and 'quantity' are removed as they are not fetched by this function anymore
 };
 
 // Debug log all environment variables at startup
@@ -126,7 +157,7 @@ const getAccessToken = async (market: string = 'UK'): Promise<string> => {
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to get access token: ${response.status} <span class="math-inline">\{response\.statusText\}\\n</span>{responseText}`);
+      throw new Error(`Failed to get access token: ${response.status} ${response.statusText}\n${responseText}`);
     }
 
     let data;
@@ -163,6 +194,91 @@ const getAccessToken = async (market: string = 'UK'): Promise<string> => {
   }
 }
 
+// Helper function to fetch products from Commerce Layer
+async function fetchProducts(organization: string, accessToken: string, skuListId: string): Promise<Product[]> {
+  try {
+    // First, fetch SKU list items to get the SKU IDs
+    const skuListItemsUrl = `https://${organization}.commercelayer.io/api/sku_list_items?filter[sku_list_id_eq]=${skuListId}&include=sku&page[size]=25`;
+    
+    console.log(`[fetchProducts] Fetching SKU list items from: ${skuListItemsUrl}`);
+    
+    const skuListResponse = await fetch(skuListItemsUrl, {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Accept': 'application/vnd.api+json',
+        'Content-Type': 'application/vnd.api+json'
+      }
+    });
+
+    if (!skuListResponse.ok) {
+      const errorText = await skuListResponse.text();
+      throw new Error(`Failed to fetch SKU list items: ${skuListResponse.status} ${skuListResponse.statusText} - ${errorText}`);
+    }
+
+    const skuListData = await skuListResponse.json();
+    
+    // Extract SKU IDs from the SKU list items
+    const skuIds = skuListData.data.map((item: any) => item.relationships.sku.data.id);
+    
+    if (skuIds.length === 0) {
+      console.log('[fetchProducts] No SKUs found in the SKU list');
+      return [];
+    }
+
+    console.log(`[fetchProducts] Found ${skuIds.length} SKUs in list`);
+
+    // Now fetch the actual SKUs with their prices and images
+    const apiUrl = `https://${organization}.commercelayer.io/api/skus?filter[id_in]=${skuIds.join(',')}&include=prices,images&page[size]=25&sort=-created_at`;
+    
+    console.log(`[fetchProducts] Fetching SKUs from: ${apiUrl}`);
+
+    const response = await fetch(apiUrl, {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Accept': 'application/vnd.api+json',
+        'Content-Type': 'application/vnd.api+json'
+      }
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Failed to fetch products: ${response.status} ${response.statusText} - ${errorText}`);
+    }
+
+    const data = await response.json() as CommerceLayerSkuApiResponse;
+
+    console.log(`[fetchProducts] Successfully fetched ${data.data.length} products`);
+
+    // Transform the API response to our Product type
+    return data.data.map((sku) => {
+      // Find price from included resources with proper typing
+      const priceRelationship = sku.relationships?.prices?.data?.[0];
+      const price = data.included?.find((item): item is PriceResource => 
+        item.type === 'prices' && item.id === priceRelationship?.id
+      );
+      
+      // Find image from included resources with proper typing
+      const imageRelationship = sku.relationships?.images?.data?.[0];
+      const image = data.included?.find((item): item is ImageResource => 
+        item.type === 'images' && item.id === imageRelationship?.id
+      );
+
+      return {
+        id: String(sku.id),
+        code: String(sku.code ?? ''),
+        name: String(sku.name ?? ''),
+        description: String(sku.description ?? ''),
+        image_url: image?.attributes?.url || null,
+        price: price?.attributes?.formatted_amount || 'N/A',
+        currency: price?.attributes?.currency_code || 'N/A'
+      };
+    });
+  } catch (error) {
+    console.error('[fetchProducts] Error fetching products:', error);
+    throw error;
+  }
+}
+
 // Main handler function
 const featuredProductsHandler = async (
   event: HandlerEvent
@@ -182,4 +298,50 @@ const featuredProductsHandler = async (
     const accessToken = await getAccessToken(market);
 
     // Get organization from environment
-    const organization = process.env.COMMERCE_LAYER_ORGAN
+    const organization = process.env.COMMERCE_LAYER_ORGANIZATION;
+    if (!organization) {
+      throw new Error('Missing COMMERCE_LAYER_ORGANIZATION environment variable');
+    }
+
+    // Get the appropriate SKU list ID based on market
+    const skuListId = market === 'UK'
+      ? process.env.COMMERCE_LAYER_UK_SKU_LIST_ID
+      : process.env.COMMERCE_LAYER_EU_SKU_LIST_ID;
+
+    if (!skuListId) {
+      throw new Error(`Missing SKU list ID for market: ${market}`);
+    }
+
+    // Fetch products from Commerce Layer
+    const products = await fetchProducts(organization, accessToken, skuListId);
+
+    return {
+      statusCode: 200,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Methods': 'GET, OPTIONS'
+      },
+      body: JSON.stringify(products)
+    };
+  } catch (error) {
+    console.error('[Featured Products] Error:', error);
+    return {
+      statusCode: 500,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Methods': 'GET, OPTIONS'
+      },
+      body: JSON.stringify({
+        error: error instanceof Error ? error.message : 'An unknown error occurred',
+        stack: process.env.NODE_ENV === 'development' && error instanceof Error ? error.stack : undefined
+      })
+    };
+  }
+};
+
+// Export the handler for Netlify Functions
+export { featuredProductsHandler as handler };
