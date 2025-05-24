@@ -8,22 +8,48 @@ export default function App() {
   // Use the global market store - it already has a default value
   const { market } = useMarketStore();
 
-  // Initialize Commerce Layer Drop-in configuration
+  // Initialize Commerce Layer Drop-in v2 configuration
   React.useEffect(() => {
-    // Initialize Commerce Layer Drop-in configuration
+    // Set configuration that matches your successful curl command
     (window as any).commercelayerConfig = {
-      clientId: import.meta.env.VITE_COMMERCE_LAYER_CLIENT_ID,
-      organization: import.meta.env.VITE_COMMERCE_LAYER_ORGANIZATION,
-      domain: import.meta.env.VITE_COMMERCE_LAYER_DOMAIN || 'commercelayer.io',
-      scope: import.meta.env.VITE_COMMERCE_LAYER_UK_SCOPE || 'market:all'
+      clientId: "3uRXduKWJ8qr4G7lUBdrC1GFormL5Qa-RbFy-eCIGtA",
+      organization: "seth-s-triathlon-haus",
+      domain: "commercelayer.io",
+      scope: "market:id:vjzmJhvEDo",
+      debug: "all"
     };
 
-    console.log('[App] Commerce Layer Drop-in config initialized:', {
-      clientId: import.meta.env.VITE_COMMERCE_LAYER_CLIENT_ID ? '***' : 'MISSING',
-      organization: import.meta.env.VITE_COMMERCE_LAYER_ORGANIZATION || 'MISSING',
-      domain: import.meta.env.VITE_COMMERCE_LAYER_DOMAIN || 'commercelayer.io',
-      scope: import.meta.env.VITE_COMMERCE_LAYER_UK_SCOPE || 'market:all'
-    });
+    console.log('[App] Commerce Layer v2 config set:', (window as any).commercelayerConfig);
+
+    // Multiple debug checks with different delays
+    setTimeout(() => {
+      const clPrices = document.querySelectorAll('cl-price');
+      console.log('[App] cl-price elements found (2s):', clPrices.length);
+      console.log('[App] All cl-price elements:', clPrices);
+      
+      // Try to manually trigger the Drop-in library
+      if ((window as any).commercelayerConfig && clPrices.length > 0) {
+        console.log('[App] Attempting to manually initialize cl-price elements');
+        clPrices.forEach((element, index) => {
+          console.log(`[App] cl-price ${index}:`, {
+            code: element.getAttribute('code'),
+            className: element.className,
+            innerHTML: element.innerHTML
+          });
+        });
+      }
+    }, 2000);
+
+    // Extended delay check
+    setTimeout(() => {
+      const clPrices = document.querySelectorAll('cl-price');
+      console.log('[App] cl-price elements found (5s):', clPrices.length);
+      
+      // Check if Drop-in library is actually loaded
+      console.log('[App] Window object keys containing "commerce":', 
+        Object.keys(window).filter(key => key.toLowerCase().includes('commerce'))
+      );
+    }, 5000);
   }, []);
 
   // Log route changes
