@@ -15,7 +15,30 @@ declare global {
         code?: string;
         'data-cart'?: boolean;
       };
+
+      // Price component (v2)
+      'cl-price': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
+        code?: string;
+        class?: string;
+      };
+
+      // Price amount component (v2)
+      'cl-price-amount': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
+        type?: 'price' | 'compare-at';
+        class?: string;
+      };
     }
+  }
+
+  // Commerce Layer global configuration
+  interface Window {
+    commercelayerConfig?: {
+      clientId: string;
+      organization: string;
+      domain?: string;
+      scope: string;
+      debug?: string;
+    };
   }
 }
 

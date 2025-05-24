@@ -1,29 +1,25 @@
 // /Users/seth/seth-haus/ui/src/components/ProductItemCard.tsx
 
-import React from "react"; // Removed useState as it's no longer used for image error state
-// Removed useMarketStore as it's not directly used in this component
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-// Removed Badge as 'In Stock/Out of Stock' badge is removed
+import { Eye } from "lucide-react";
 import { cn } from "utils/cn";
 
-// Updated ProductResponse type to reflect changes in featured-products.ts
-// Make sure this matches the Product type in your Netlify function's response
+// Simplified ProductResponse type - no need for manual price handling
 export type ProductResponse = {
   id: string;
-  code: string;
+  code: string; // This is the SKU code that cl-price will use
   name: string;
   description: string;
   image_url: string | null;
-  price: string; // Formatted price string e.g., "£129.99"
-  currency: string;
-  // 'available' and 'quantity' are removed here
+  // Remove manual price and currency - cl-price handles this
 };
 
 export interface Props {
   product: ProductResponse;
   className?: string;
-  onViewDetailsClick?: () => void; // Optional handler for view details button
+  onViewDetailsClick?: () => void;
 }
 
 const ProductItemCardComponent = ({ product, className = "", onViewDetailsClick }: Props) => {
@@ -32,39 +28,29 @@ const ProductItemCardComponent = ({ product, className = "", onViewDetailsClick 
   const productCode = product?.code || 'unknown';
   const productName = product?.name || 'Unknown Product';
   const productDescription = product?.description || 'No description available.';
-  const productPrice = product?.price || 'Price not available';
 
   // Determine the image URL based on local assets and product.code
   const getImageUrl = (): string => {
-    // Only use the product code if it's defined and not empty
     if (productCode && productCode !== 'unknown' && productCode.trim() !== '') {
       return `/migrated-assets/${productCode}.jpg`;
     }
-    // If no valid product code, go straight to fallback
     return '/migrated-assets/no-image.jpg';
   };
 
   const imageUrl = getImageUrl();
-
-  // A local fallback image in case a specific product image is missing.
-  // Make sure you have a 'no-image.jpg' file in your 'public/migrated-assets' folder.
   const fallbackImageUrl = '/migrated-assets/no-image.jpg';
 
   // Handle image loading errors with infinite loop prevention
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     const target = e.currentTarget;
     
-    // Prevent infinite loops by checking if we're already showing the fallback
     if (target.src.includes('no-image.jpg')) {
       console.error(`Fallback image also failed to load for product '${productName}' (code: ${productCode}). Image path: ${target.src}`);
-      target.onerror = null; // Prevent further error events
+      target.onerror = null;
       return;
     }
     
-    // Log the error for debugging
     console.log(`Image for product '${productName}' (code: ${productCode}) not found at '${target.src}'. Falling back to: '${fallbackImageUrl}'`);
-    
-    // Set fallback image and prevent further error events on this attempt
     target.onerror = null;
     target.src = fallbackImageUrl;
   };
@@ -79,63 +65,95 @@ const ProductItemCardComponent = ({ product, className = "", onViewDetailsClick 
     });
   }
 
+  // Debug Commerce Layer Drop-in
+  React.useEffect(() => {
+    console.log(`[ProductItemCard] Initializing cl-price for SKU: ${productCode}`);
+    console.log('[ProductItemCard] Commerce Layer config:', (window as any).commercelayerConfig);
+  }, [productCode]);
+
   return (
     <Card
       className={cn("overflow-hidden shadow-sm hover:shadow-lg transition-shadow duration-300 bg-card flex flex-col h-full", className)}
       tabIndex={-1}
     >
-      <CardHeader
-        className="p-0"
-       >
-        <div
-          className="w-full overflow-hidden"
-         >
+      <CardHeader className="p-3">
+        <div className="w-full overflow-hidden relative group rounded-md">
           <img
             src={imageUrl}
             alt={productName}
-            className="w-full h-48 object-cover"
+            className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105 rounded-md"
             onError={handleImageError}
             loading="lazy"
           />
+          {/* Overlay View button on image hover */}
+          <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 flex items-center justify-center rounded-md">
+            <Button
+              variant="secondary"
+              size="sm"
+              className="opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+              onClick={(e) => {
+                console.log(`[ProductItemCard] Quick view clicked for product: ${productName} (${productCode})`);
+                e.stopPropagation();
+                onViewDetailsClick?.();
+              }}
+            >
+              <Eye className="h-4 w-4 mr-1" />
+              Quick View
+            </Button>
+          </div>
         </div>
       </CardHeader>
-      <CardHeader >
+      
+      <CardHeader className="px-3 pt-0 pb-2">
         <CardTitle
           className="text-lg font-semibold tracking-tight truncate hover:text-primary transition-colors"
           title={productName}
         >
-            {productName}
+          {productName}
         </CardTitle>
       </CardHeader>
-      <CardContent className="flex flex-col flex-grow p-4">
+      
+      <CardContent className="flex flex-col flex-grow px-3 pb-3">
         <p className="text-sm text-muted-foreground flex-grow mb-4 line-clamp-3" title={productDescription}>
           {productDescription}
         </p>
 
-        {/* --- Streamlined display: Only price and View Details button --- */}
-        <div className="flex justify-between items-center mt-auto mb-4">
-          <p className="text-lg font-bold">
-            {productPrice}
-          </p>
-          {/* Removed the Badge here as it's not relevant without inventory data */}
-        </div>
+        {/* Price and Button Layout - Side by side */}
+        <div className="flex justify-between items-center mt-auto">
+          {/* Use v1 clayer-price syntax */}
+{/* Use explicit cl-price with proper attributes */}
+{/* Use correct v2 cl-price syntax with nested elements */}
+<div className="flex flex-col flex-grow">
+  <cl-price code={productCode}>
+    <cl-price-amount type="price" class="text-lg font-bold text-primary"></cl-price-amount>
+    <cl-price-amount type="compare-at" class="text-sm text-muted-foreground line-through"></cl-price-amount>
+  </cl-price>
+  
+  {/* Debug info for development */}
+  {process.env.NODE_ENV === 'development' && (
+    <span className="text-xs text-muted-foreground mt-1">
+      SKU: {productCode}
+    </span>
+  )}
+</div>
 
-        <div className="mt-auto space-y-2">
-            {onViewDetailsClick && (
-              <Button
-                variant="outline"
-                className="w-full"
-                onClick={(e) => {
-                  console.log(`[ProductItemCard] 'View Details' button clicked for product: ${productName} (${productCode})`);
-                   e.stopPropagation();
-                   onViewDetailsClick();
-                 }}
-              >
-                View Details
-              </Button>
-            )}
-            {/* Removed the cl-add-to-cart and disabled "Out of Stock" button from here.
-                Add to cart functionality will be on the Product Details Page via Drop-in.js. */}
+
+
+
+          {/* View Product Button - Positioned to the right */}
+          <Button
+            variant="default"
+            size="sm"
+            className="ml-3 shrink-0"
+            onClick={(e) => {
+              console.log(`[ProductItemCard] 'View Product' button clicked for product: ${productName} (${productCode})`);
+              e.stopPropagation();
+              onViewDetailsClick?.();
+            }}
+          >
+            <Eye className="h-4 w-4 mr-1" />
+            View
+          </Button>
         </div>
       </CardContent>
     </Card>
