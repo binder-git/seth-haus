@@ -3,15 +3,16 @@
 
 <head>
   <meta charset="UTF-8" />
-  <link href="/light.ico" rel="icon" media="(prefers-color-scheme: light)">
-  <link href="/dark.ico" rel="icon" media="(prefers-color-scheme: dark)">
+  <!-- Updated favicon paths -->
+  <link href="/migrated-assets/light.ico" rel="icon" media="(prefers-color-scheme: light)">
+  <link href="/migrated-assets/dark.ico" rel="icon" media="(prefers-color-scheme: dark)">
+  <!-- Fallback favicon for browsers that don't support media queries -->
+  <link href="/migrated-assets/light.ico" rel="icon" type="image/x-icon">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
+  <!-- SEO and App Metadata -->
   <title>Seth's Triathlon Haus</title>
-  <meta name="description" content="Seth's Triathlon Haus - Your triathlon gear shop">
+  <meta name="description" content="Seth's Triathlon Haus - Your triathlon gear shop where nothing is for sale!">
   <meta name="theme-color" content="#ffffff">
   <meta name="msapplication-TileColor" content="#ffffff">
   <meta name="mobile-web-app-capable" content="yes">
@@ -19,9 +20,15 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Seth's Triathlon Haus">
 
+  <!-- Font Preconnections -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  
+  <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Commerce Layer Drop-in CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/@commercelayer/drop-in.js@2/dist/drop-in/minicart.css" rel="stylesheet" />
 </head>
 
 <body>

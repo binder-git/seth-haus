@@ -10,19 +10,36 @@ export default function App() {
 
   // Initialize Commerce Layer Drop-in v2 configuration
   React.useEffect(() => {
-    // Set configuration using the simplified v2 format
+    // Enhanced Commerce Layer v2 configuration
     (window as any).commercelayerConfig = {
       clientId: "3uRXduKWJ8qr4G7lUBdrC1GFormL5Qa-RbFy-eCIGtA",
-      scope: "market:id:vjzmJhvEDo"
+      scope: "market:id:vjzmJhvEDo",
+      defaultAttributes: {
+        orders: {
+          return_url: window.location.origin
+        }
+      }
     };
 
-    console.log('[App] Commerce Layer v2 config set:', (window as any).commercelayerConfig);
+    console.log('[App] Enhanced Commerce Layer v2 config set:', (window as any).commercelayerConfig);
 
-    // Multiple debug checks with different delays
+    // Debug Commerce Layer components
     setTimeout(() => {
       const clPrices = document.querySelectorAll('cl-price');
+      const clAddToCarts = document.querySelectorAll('cl-add-to-cart');
+      const clCarts = document.querySelectorAll('cl-cart');
+      
       console.log('[App] cl-price elements found (2s):', clPrices.length);
-      console.log('[App] All cl-price elements:', clPrices);
+      console.log('[App] cl-add-to-cart elements found (2s):', clAddToCarts.length);
+      console.log('[App] cl-cart elements found (2s):', clCarts.length);
+      
+      // Check if components are properly initialized
+      clAddToCarts.forEach((element, index) => {
+        console.log(`[App] cl-add-to-cart ${index}:`, {
+          code: element.getAttribute('code'),
+          innerHTML: element.innerHTML
+        });
+      });
       
       // Try to manually trigger the Drop-in library
       if ((window as any).commercelayerConfig && clPrices.length > 0) {

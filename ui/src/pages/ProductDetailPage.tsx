@@ -46,6 +46,40 @@ interface ProductListingResponse {
   included: any[];
 }
 
+// Fun Buy Now Button Component
+const FunBuyNowButton: React.FC = () => {
+  const [isClicked, setIsClicked] = useState(false);
+  const [clickCount, setClickCount] = useState(0);
+
+  const messages = [
+    "This ain't real. Nothing is for sale!",
+    "Still not real! 😄",
+    "Seriously, it's just a demo! 🤷‍♂️",
+    "You're persistent! But still no sale 😂",
+    "OK, you win. Here's a virtual high-five! 🙌"
+  ];
+
+  const handleClick = () => {
+    setIsClicked(true);
+    setClickCount(prev => Math.min(prev + 1, messages.length - 1));
+    
+    // Reset after 3 seconds
+    setTimeout(() => {
+      setIsClicked(false);
+    }, 3000);
+  };
+
+  return (
+    <Button 
+      variant="outline" 
+      className="w-full py-3 text-base transition-all duration-300"
+      onClick={handleClick}
+    >
+      {isClicked ? messages[clickCount] : "Buy Now"}
+    </Button>
+  );
+};
+
 const ProductDetailPage: React.FC = () => {
   // State
   const [product, setProduct] = useState<Product | null>(null);
@@ -329,18 +363,35 @@ const ProductDetailPage: React.FC = () => {
             <p>{product.attributes?.description || "No description available."}</p>
           </div>
           
-          {/* Action Buttons */}
+          {/* Action Buttons - Updated with shorter height and fun Buy Now */}
           <div className="space-y-3 max-w-md">
-            <Button className="w-full py-6 text-lg">
-              Add to Cart
-              <ShoppingCart className="ml-2 h-5 w-5" />
-            </Button>
+            {commerceLayerReady ? (
+              <cl-add-to-cart 
+                code={product.attributes?.code || ''}
+                class="block w-full"
+              >
+                <button 
+                  className="w-full py-3 text-base bg-primary text-primary-foreground hover:bg-primary/90 rounded-md font-medium transition-colors flex items-center justify-center"
+                  onClick={(e) => {
+                    console.log('[ProductDetailPage] Add to cart button clicked!');
+                    console.log('[ProductDetailPage] Event:', e);
+                    console.log('[ProductDetailPage] Product code:', product.attributes?.code);
+                    console.log('[ProductDetailPage] Commerce Layer ready:', commerceLayerReady);
+                  }}
+                  type="button"
+                >
+                  Add to Cart
+                  <ShoppingCart className="ml-2 h-4 w-4" />
+                </button>
+              </cl-add-to-cart>
+            ) : (
+              <Button className="w-full py-3 text-base" disabled>
+                Loading...
+              </Button>
+            )}
             
-            <Button variant="outline" className="w-full py-6 text-lg">
-              Buy Now
-            </Button>
+            <FunBuyNowButton />
           </div>
-
           
           <p className="text-xs text-muted-foreground mt-4">
             Shipping calculated at checkout.
