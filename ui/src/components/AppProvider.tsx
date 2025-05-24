@@ -51,9 +51,21 @@ export const AppProvider = ({ children }: AppProviderProps): React.ReactElement 
   const marketIdMap = null;
   const configReady = true; // Assume config is ready since we're not using it anymore
 
+  // Check for Commerce Layer configuration readiness
   useEffect(() => {
-    // Set CL as ready since we're not using the config anymore
-    setClReady(true);
+    const checkCommerceLayerConfig = () => {
+      if ((window as any).commercelayerConfig) {
+        console.log('[AppProvider] Commerce Layer config found:', (window as any).commercelayerConfig);
+        setClReady(true);
+        setV2ConfigReady(true);
+      } else {
+        console.log('[AppProvider] Commerce Layer config not ready, retrying...');
+        setTimeout(checkCommerceLayerConfig, 100);
+      }
+    };
+
+    console.log('[AppProvider] Starting Commerce Layer config check...');
+    checkCommerceLayerConfig();
   }, []);
 
   const setMarketInContext = (newMarket: Market) => {
@@ -104,7 +116,7 @@ export const AppProvider = ({ children }: AppProviderProps): React.ReactElement 
     <AppContext.Provider value={value}>
       <TooltipProvider>
         <div className="min-h-screen flex flex-col">
-          <SimpleHeader />
+          <SimpleHeader selectedMarket={market} onMarketChange={setMarketInContext} />
           <main className="flex-grow">{children}</main>
           <SimpleFooter />
           <Toaster position="top-center" />

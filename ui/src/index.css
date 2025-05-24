@@ -4,7 +4,6 @@
 @tailwind components;
 @tailwind utilities;
 
-
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -62,7 +61,6 @@
   }
 }
 
-
 @layer base {
   * {
     @apply border-border;
@@ -70,6 +68,22 @@
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+@layer components {
+  /* Global page container classes */
+  .page-container {
+    @apply mx-auto max-w-7xl px-4 md:px-6 lg:px-8;
+  }
+  
+  .page-content {
+    @apply py-8;
+  }
+  
+  /* Combined class for convenience */
+  .page-layout {
+    @apply mx-auto max-w-7xl px-4 md:px-6 lg:px-8 py-8;
   }
 }
 

@@ -1,44 +1,42 @@
 /// <reference types="react" />
 
-/**
- * Type declarations for Commerce Layer drop-in.js components
- * @see https://commercelayer.github.io/drop-in.js/
- */
 declare global {
   namespace JSX {
     interface IntrinsicElements {
-      // Cart component
-      'cl-cart': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>;
+      'cl-cart': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
+        type?: 'mini' | 'full';
+        class?: string;
+      };
       
-      // Add to cart component
+      'cl-cart-link': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
+        class?: string;
+        target?: string;
+      };
+
+      'cl-cart-count': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
+        class?: string;
+      };
+
+      'cl-cart-total': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
+        class?: string;
+      };
+      
       'cl-add-to-cart': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
         code?: string;
+        class?: string;
         'data-cart'?: boolean;
       };
 
-      // Price component (v2)
       'cl-price': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
         code?: string;
         class?: string;
       };
 
-      // Price amount component (v2)
       'cl-price-amount': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
         type?: 'price' | 'compare-at';
         class?: string;
       };
     }
-  }
-
-  // Commerce Layer global configuration
-  interface Window {
-    commercelayerConfig?: {
-      clientId: string;
-      organization: string;
-      domain?: string;
-      scope: string;
-      debug?: string;
-    };
   }
 }
 
