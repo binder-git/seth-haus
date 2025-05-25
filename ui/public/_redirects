@@ -1,5 +1,5 @@
-# Netlify Settings for single page application
-/*    /index.html   200
-
 # Netlify Functions - redirect /api/* to /.netlify/functions/*
 /api/*  /.netlify/functions/:splat  200
+
+# Netlify Settings for single page application (MUST come last)
+/*    /index.html   200
