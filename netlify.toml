@@ -11,19 +11,6 @@ publish = "ui"
 port = 8888
 functions = "netlify/functions/dist"
 
-[dev.environment]
-NODE_ENV = "development"
-COMMERCE_LAYER_CLIENT_ID = "${COMMERCE_LAYER_CLIENT_ID}"
-COMMERCE_LAYER_CLIENT_SECRET = "${COMMERCE_LAYER_CLIENT_SECRET}"
-COMMERCE_LAYER_ORGANIZATION = "${COMMERCE_LAYER_ORGANIZATION}"
-COMMERCE_LAYER_DOMAIN = "${COMMERCE_LAYER_DOMAIN}"
-COMMERCE_LAYER_EU_SCOPE = "${COMMERCE_LAYER_EU_SCOPE}"
-COMMERCE_LAYER_UK_SCOPE = "${COMMERCE_LAYER_UK_SCOPE}"
-COMMERCE_LAYER_EU_SKU_LIST_ID = "${COMMERCE_LAYER_EU_SKU_LIST_ID}"
-COMMERCE_LAYER_UK_SKU_LIST_ID = "${COMMERCE_LAYER_UK_SKU_LIST_ID}"
-APP_TITLE = "${APP_TITLE}"
-API_URL = "/.netlify/functions"
-
 [functions]
 directory = "netlify/functions/dist"
 node_bundler = "esbuild"
@@ -33,19 +20,6 @@ included_files = ["netlify/functions/src/**", "!**/*.d.ts"]
 command = "npm install && cd ui && npm install && npm run build && cd ../netlify/functions && npx tsc"
 publish = "ui/dist"
 functions = "netlify/functions/dist"
-
-[context.production.environment]
-NODE_ENV = "production"
-COMMERCE_LAYER_CLIENT_ID = "${COMMERCE_LAYER_CLIENT_ID}"
-COMMERCE_LAYER_CLIENT_SECRET = "${COMMERCE_LAYER_CLIENT_SECRET}"
-COMMERCE_LAYER_ORGANIZATION = "${COMMERCE_LAYER_ORGANIZATION}"
-COMMERCE_LAYER_DOMAIN = "${COMMERCE_LAYER_DOMAIN}"
-COMMERCE_LAYER_EU_SCOPE = "${COMMERCE_LAYER_EU_SCOPE}"
-COMMERCE_LAYER_UK_SCOPE = "${COMMERCE_LAYER_UK_SCOPE}"
-COMMERCE_LAYER_EU_SKU_LIST_ID = "${COMMERCE_LAYER_EU_SKU_LIST_ID}"
-COMMERCE_LAYER_UK_SKU_LIST_ID = "${COMMERCE_LAYER_UK_SKU_LIST_ID}"
-APP_TITLE = "${APP_TITLE}"
-API_URL = "https://seth-haus.netlify.app/.netlify/functions"
 
 [[redirects]]
 from = "/*"
