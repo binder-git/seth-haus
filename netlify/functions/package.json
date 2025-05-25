@@ -9,19 +9,18 @@
     "test": "jest"
   },
   "dependencies": {
-    "@commercelayer/sdk": "^6.41.0",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "http-proxy-middleware": "^3.0.5",
-    "node-fetch": "^2.7.0"
+    "node-fetch": "^2.7.0",
+    "typescript": "^5.8.3"
   },
   "devDependencies": {
     "@netlify/functions": "^3.1.9",
     "@types/jest": "^29.5.14",
     "@types/node": "^20.17.48",
-    "@types/node-fetch": "^2.6.12",
-    "typescript": "^5.8.3"
+    "@types/node-fetch": "^2.6.12"
   },
   "description": "These Netlify Functions provide secure authentication and API interaction for the Commerce Layer integration, built with TypeScript and ES Modules.",
   "main": "cors-proxy.js",
