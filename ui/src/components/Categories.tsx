@@ -18,27 +18,35 @@ export const Categories = ({ className = "" }: Props) => {
       id: "swim",
       name: "Swim",
       description: "Wetsuits, goggles, and accessories for open water and pool training",
-      image: "https://images.unsplash.com/photo-1530549387789-4c1017266635?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80"
+      image: "/migrated-assets/category-swim.jpg"
     },
     {
       id: "bike",
       name: "Bike",
       description: "Triathlon bikes, components, and cycling gear for speed and endurance",
-      image: "https://images.unsplash.com/photo-1541625602330-2277a4c46182?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80"
+      image: "/migrated-assets/category-bike.jpg"
     },
     {
       id: "run",
       name: "Run",
       description: "Running shoes, apparel, and accessories designed for triathletes",
-      image: "https://images.unsplash.com/photo-1502904550040-7534597429ae?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2069&q=80"
+      image: "/migrated-assets/category-run.jpg"
     },
     {
       id: "triathlon",
       name: "Triathlon",
       description: "Specialized triathlon gear, race suits, and transition equipment",
-      image: "https://images.unsplash.com/photo-1489396160836-2c99c977e970?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80"
+      image: "/migrated-assets/category-triathlon.jpg"
     }
   ];
+
+  // Handle image loading errors with fallback
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    const target = e.currentTarget;
+    if (!target.src.includes('no-image.jpg')) {
+      target.src = '/migrated-assets/no-image.jpg';
+    }
+  };
 
   return (
     <section className={`py-16 ${className}`}>
@@ -54,13 +62,15 @@ export const Categories = ({ className = "" }: Props) => {
                 src={category.image} 
                 alt={category.name} 
                 className="w-full h-80 object-cover group-hover:scale-105 transition-transform duration-500"
+                onError={handleImageError}
+                loading="lazy"
               />
               <div className="absolute bottom-0 left-0 right-0 p-6 z-20">
                 <h3 className="text-2xl font-bold text-white mb-2">{category.name}</h3>
                 <p className="text-white/80 mb-4">{category.description}</p>
                 <Link 
                   to={`/products?category=${category.id}`}
-                  className="inline-block px-4 py-2 bg-white text-primary rounded-md font-medium hover:bg-white/90 transition-colors"
+                  className="inline-block px-4 py-2 bg-background text-foreground border border-border rounded-md font-medium hover:bg-accent hover:text-accent-foreground transition-colors shadow-sm"
                 >
                   Browse {category.name}
                 </Link>
