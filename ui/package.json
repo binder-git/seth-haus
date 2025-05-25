@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "npx vite",
     "build": "npx vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
@@ -70,7 +70,6 @@
     "tailwindcss": "^3.4.17",
     "tailwindcss-animate": "^1.0.7",
     "vaul": "^1.1.2",
-    "vite": "^5.4.19",
     "vite-tsconfig-paths": "^5.1.4",
     "zustand": "^5.0.5"
   },
@@ -99,6 +98,7 @@
     "source-map-explorer": "^2.5.3",
     "ts-jest": "^29.3.3",
     "typescript": "^5.8.3",
+    "vite": "^6.3.5",
     "vite-plugin-html": "^3.2.2",
     "vite-plugin-html-inject": "^1.1.2"
   }
