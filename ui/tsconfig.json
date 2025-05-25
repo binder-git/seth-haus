@@ -1,5 +1,8 @@
 {
   "compilerOptions": {
+    "composite": true,
+    "declaration": true,
+    "emitDeclarationOnly": true,
     "target": "ESNext",
     "module": "ESNext",
     "moduleResolution": "node",
@@ -30,7 +33,7 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "noEmit": true,
+    "noEmit": false,
     "allowJs": true,
     "types": ["node", "vite/client"],
     "lib": ["DOM", "DOM.Iterable", "ESNext"]
