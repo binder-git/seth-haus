@@ -1,10 +1,11 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
+  /* Import fonts within @layer base */
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
   :root {
     --background: 0 0% 100%;
     --foreground: 240 10% 3.9%;
@@ -59,14 +60,14 @@
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
   }
-}
 
-@layer base {
   * {
     @apply border-border;
   }
+  
   body {
     @apply bg-background text-foreground;
+    font-family: 'Inter', sans-serif;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
@@ -87,18 +88,20 @@
   }
 }
 
-/* Commerce Layer Cart Override */
-cl-cart[type="mini"][open] {
-  display: block !important;
-  position: fixed !important;
-  top: 0 !important;
-  right: 0 !important;
-  width: 550px !important; /* Overall panel width */
-  height: 100vh !important;
-  background-color: white !important;
-  z-index: 9999 !important;
-  border-left: 1px solid #ccc !important;
-  box-shadow: -2px 0 5px rgba(0,0,0,0.1) !important;
-  padding: 20px !important; /* Add padding to the panel itself */
-  box-sizing: border-box !important; /* Padding is included within the width/height */
+@layer utilities {
+  /* Commerce Layer Cart Override */
+  cl-cart[type="mini"][open] {
+    display: block !important;
+    position: fixed !important;
+    top: 0 !important;
+    right: 0 !important;
+    width: 550px !important;
+    height: 100vh !important;
+    background-color: hsl(var(--background)) !important;
+    z-index: 9999 !important;
+    border-left: 1px solid hsl(var(--border)) !important;
+    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1) !important;
+    padding: 20px !important;
+    box-sizing: border-box !important;
+  }
 }

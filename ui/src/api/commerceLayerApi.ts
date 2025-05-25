@@ -37,7 +37,7 @@ class CommerceLayerApi {
    */
   async getFeaturedProducts(category?: string): Promise<{ products: Product[] }> {
     const params = new URLSearchParams({
-      market: this.marketId.toLowerCase(),
+      market: this.marketId, // ✅ FIXED: Removed .toLowerCase() to preserve case
       ...(category && { category })
     });
 
@@ -88,7 +88,7 @@ class CommerceLayerApi {
     totalPages: number;
   }> {
     const params = new URLSearchParams({
-      market: this.marketId.toLowerCase(),
+      market: this.marketId, // ✅ FIXED: Removed .toLowerCase() to preserve case
       ...(options.category && { category: options.category }),
       ...(options.page && { page: options.page.toString() }),
       ...(options.pageSize && { pageSize: options.pageSize.toString() }),

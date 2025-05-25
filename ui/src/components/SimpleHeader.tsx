@@ -2,15 +2,10 @@ import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { MarketSwitcher } from './MarketSwitcher';
 import { useAppContext } from './AppProvider';
-import { Market } from "@/types";
 import { ShoppingCart, X } from "lucide-react";
 
-interface SimpleHeaderProps {
-  selectedMarket: Market;
-  onMarketChange: (market: Market) => void;
-}
-
-export default function SimpleHeader({ selectedMarket, onMarketChange }: SimpleHeaderProps) {
+// Remove the interface since we no longer need these props
+export default function SimpleHeader() {
   const navigate = useNavigate();
   const { clReady } = useAppContext();
 
@@ -54,7 +49,8 @@ export default function SimpleHeader({ selectedMarket, onMarketChange }: SimpleH
 
           {/* Right Section - Market Switcher and Cart */}
           <div className="flex items-center space-x-4">
-            <MarketSwitcher selectedMarket={selectedMarket} onMarketChange={onMarketChange} />
+            {/* MarketSwitcher now uses global store - no props needed */}
+            <MarketSwitcher />
 
             {/* Commerce Layer Mini-Cart */}
             <div className="relative">

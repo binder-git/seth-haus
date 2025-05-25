@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
 import { Market } from '@/types';
 
 // Market configurations
@@ -31,19 +32,30 @@ interface MarketState {
   switchMarket: (marketName: keyof typeof MARKETS) => void;
 }
 
-// Create the Zustand store
-export const useMarketStore = create<MarketState>((set, get) => ({
-  market: MARKETS.UK, // Default to UK market
-  markets: MARKETS,
-  setMarket: (market) => {
-    // Update the market in the store
-    set({ market });
-  },
-  switchMarket: (marketName) => {
-    const market = MARKETS[marketName];
-    if (market) {
-      // Update the market in the store
-      set({ market });
+// Create the Zustand store with persistence
+export const useMarketStore = create<MarketState>()(
+  persist(
+    (set, get) => ({
+      market: MARKETS.UK, // Default to UK market
+      markets: MARKETS,
+      setMarket: (market) => {
+        console.log('[MarketStore] Setting market:', market);
+        // Update the market in the store
+        set({ market });
+      },
+      switchMarket: (marketName) => {
+        const market = MARKETS[marketName];
+        if (market) {
+          console.log('[MarketStore] Switching to market:', marketName, market);
+          // Update the market in the store
+          set({ market });
+        }
+      },
+    }),
+    {
+      name: 'market-storage', // localStorage key
+      storage: createJSONStorage(() => localStorage), // Use createJSONStorage helper
+      // Remove partialize since we want to persist the entire state
     }
-  },
-}));
+  )
+);
