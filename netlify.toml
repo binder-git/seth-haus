@@ -30,7 +30,7 @@ node_bundler = "esbuild"
 included_files = ["netlify/functions/src/**", "!**/*.d.ts"]
 
 [context.production]
-command = "npm install && cd ui && npm install && npm run build && cd ../netlify/functions && ../node_modules/.bin/tsc"
+command = "npm install && cd ui && npm install && npm run build && cd ../netlify/functions && npx tsc"
 publish = "ui/dist"
 functions = "netlify/functions/dist"
 
