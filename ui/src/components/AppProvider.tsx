@@ -18,7 +18,6 @@ export interface AppContextProps {
   error: string | null;
   accessToken: string | null;
   v2ConfigReady: boolean;
-  setMarket: (market: Market) => void;
 }
 
 interface AppProviderProps {
@@ -68,23 +67,6 @@ export const AppProvider = ({ children }: AppProviderProps): React.ReactElement 
     checkCommerceLayerConfig();
   }, []);
 
-  const setMarketInContext = (newMarket: Market) => {
-    if (!marketIdMap) return;
-    const marketName = typeof newMarket === 'string' ? newMarket : newMarket.name;
-    const newMarketId = marketIdMap[marketName];
-    if (!newMarketId) {
-      console.error(`[AppProvider] Market ID not found in config for market: ${marketName}`);
-      return;
-    }
-    setCurrentMarketId(newMarketId);
-  };
-
-  useEffect(() => {
-    if (market && marketIdMap) {
-      setMarketInContext(market);
-    }
-  }, [market, marketIdMap]);
-
   const value = useMemo<AppContextProps>(() => ({
     clientId,
     baseUrl,
@@ -97,7 +79,6 @@ export const AppProvider = ({ children }: AppProviderProps): React.ReactElement 
     accessToken,
     organization,
     v2ConfigReady,
-    setMarket: setMarketInContext,
   }), [
     clientId,
     baseUrl,
@@ -116,7 +97,8 @@ export const AppProvider = ({ children }: AppProviderProps): React.ReactElement 
     <AppContext.Provider value={value}>
       <TooltipProvider>
         <div className="min-h-screen flex flex-col">
-          <SimpleHeader selectedMarket={market} onMarketChange={setMarketInContext} />
+          {/* SimpleHeader now uses global market store - no props needed */}
+          <SimpleHeader />
           <main className="flex-grow">{children}</main>
           <SimpleFooter />
           <Toaster position="top-center" />

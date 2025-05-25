@@ -8,20 +8,62 @@ export default function App() {
   // Use the global market store - it already has a default value
   const { market } = useMarketStore();
 
-  // Initialize Commerce Layer Drop-in v2 configuration
+  // Update Commerce Layer configuration when market changes
   React.useEffect(() => {
-    // Enhanced Commerce Layer v2 configuration
+    // Use the full scope format FIRST, then fallback to ID
+    const marketScope = market.scope || market.id || "market:id:vjzmJhvEDo";
+
+    console.log('[App] Original market object:', market);
+    console.log('[App] Market scope being used:', marketScope);
+    console.log('[App] Market scope character check:', {
+      length: marketScope.length,
+      includes_market_prefix: marketScope.startsWith('market:id:'),
+      actual_chars: marketScope.split('')
+    });
+    
+    // Enhanced Commerce Layer v2 configuration with proper authentication
     (window as any).commercelayerConfig = {
       clientId: "3uRXduKWJ8qr4G7lUBdrC1GFormL5Qa-RbFy-eCIGtA",
-      scope: "market:id:vjzmJhvEDo",
+      scope: marketScope, // Now uses full scope format
+      domain: "commercelayer.io",
       defaultAttributes: {
         orders: {
           return_url: window.location.origin
         }
       }
     };
+  
+    console.log('[App] Commerce Layer config updated for market:', market.name, 'scope:', marketScope);
 
-    console.log('[App] Enhanced Commerce Layer v2 config set:', (window as any).commercelayerConfig);
+    // Force Commerce Layer components to reinitialize when market changes
+    setTimeout(() => {
+      const clPriceElements = document.querySelectorAll('cl-price');
+      
+      console.log(`[App] Found ${clPriceElements.length} cl-price elements to refresh`);
+      
+      clPriceElements.forEach((element, index) => {
+        const currentCode = element.getAttribute('code');
+        console.log(`[App] Refreshing cl-price ${index} with code: ${currentCode}`);
+        
+        // Force complete re-initialization by removing and re-adding
+        const parent = element.parentNode;
+        const nextSibling = element.nextSibling;
+        const clonedElement = element.cloneNode(true);
+        
+        if (parent) {
+          // Remove old element
+          parent.removeChild(element);
+          
+          // Add new element after a brief delay
+          setTimeout(() => {
+            parent.insertBefore(clonedElement, nextSibling);
+            console.log(`[App] Re-inserted cl-price element for ${currentCode}`);
+          }, 100);
+        }
+      });
+      
+      console.log('[App] Forced Commerce Layer price components to refresh for market:', market.name);
+    }, 200);
 
     // Debug Commerce Layer components
     setTimeout(() => {
@@ -64,7 +106,7 @@ export default function App() {
         Object.keys(window).filter(key => key.toLowerCase().includes('commerce'))
       );
     }, 5000);
-  }, []);
+  }, [market]); // Re-run when market changes
 
   // Log route changes
   React.useEffect(() => {

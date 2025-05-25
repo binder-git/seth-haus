@@ -9,60 +9,91 @@ interface ProductState {
   products: any[]; // Store raw CL products
   isLoading: boolean;
   error: string | null;
+  currentMarketId: string | null; // Track current market
   // Actions
   fetchProducts: (market: Market, category?: string | null) => Promise<void>;
+  clearProducts: () => void; // Add clear function
 }
 
-export const useProductStore = create<ProductState>((set) => ({
+export const useProductStore = create<ProductState>((set, get) => ({
   products: [],
   isLoading: false,
   error: null,
+  currentMarketId: null,
 
   fetchProducts: async (market: Market, category?: string | null) => {
     const selectedMarket = market;
+    const marketId = selectedMarket.id || selectedMarket.scope;
 
-    set({ isLoading: true, error: null });
+    set({ isLoading: true, error: null, currentMarketId: marketId });
     console.log(
-      `[product-store] Fetching products for market: ${selectedMarket.name} (${selectedMarket.id}), category: ${category || 'All'}`,
+      `[product-store] Fetching products for market: ${selectedMarket.name} (${marketId}), category: ${category || 'All'}`,
     );
 
     try {
       // Set the market for the singleton instance
-      commerceLayerApi.setMarket(selectedMarket.id);
+      commerceLayerApi.setMarket(marketId);
       
-      // Fetch products for the specific market
+      // Fetch products for the specific market (remove market from options)
       const response = await commerceLayerApi.getProductsListing({
-        market: selectedMarket.id,
         ...(category && { category })
       });
       
       console.log('Commerce Layer API response:', response);
       
       if (response && response.products) {
-        console.log(`Received ${response.products.length} products for market ${selectedMarket.name} (${selectedMarket.id})`);
+        console.log(`Received ${response.products.length} products for market ${selectedMarket.name} (${marketId})`);
         // Store the raw product data
         set({
           products: response.products,
           isLoading: false,
+          currentMarketId: marketId
         });
       } else {
-        console.error(`Unexpected response format for market ${selectedMarket.name} (${selectedMarket.id}):`, response);
+        console.error(`Unexpected response format for market ${selectedMarket.name} (${marketId}):`, response);
         const errorMsg = "Unexpected response format from server";
-        set({ error: errorMsg, isLoading: false, products: [] });
+        set({ error: errorMsg, isLoading: false, products: [], currentMarketId: marketId });
         toast.error("Failed to fetch products: Unexpected response format");
       }
     } catch (error: any) {
       const errorMsg = error instanceof Error ? error.message : 'Failed to fetch products';
-      console.error(`Error fetching products for market ${selectedMarket.name} (${selectedMarket.region}):`, errorMsg, error);
-      set({ error: errorMsg, isLoading: false, products: [] });
+      console.error(`Error fetching products for market ${selectedMarket.name}:`, errorMsg, error);
+      set({ error: errorMsg, isLoading: false, products: [], currentMarketId: marketId });
       toast.error(errorMsg);
     }
   },
+
+  clearProducts: () => {
+    set({ products: [], error: null, currentMarketId: null });
+  }
 }));
 
 export const useAppProducts = (market: Market | null) => {
-  const { products: rawClProducts, isLoading, error: fetchError } = useProductStore();
+  const { 
+    products: rawClProducts, 
+    isLoading, 
+    error: fetchError, 
+    fetchProducts,
+    currentMarketId 
+  } = useProductStore();
   const [mappingError, setMappingError] = useState<Error | null>(null);
+
+  // Auto-fetch products when market changes
+  useEffect(() => {
+    if (!market) return;
+    
+    const marketId = market.id || market.scope;
+    
+    // Only fetch if market has changed or no products loaded
+    if (currentMarketId !== marketId || rawClProducts.length === 0) {
+      console.log('[useAppProducts] Market changed or no products, fetching...', {
+        currentMarketId,
+        newMarketId: marketId,
+        hasProducts: rawClProducts.length > 0
+      });
+      fetchProducts(market);
+    }
+  }, [market, fetchProducts, currentMarketId, rawClProducts.length]);
 
   const computation = useMemo(() => {
     if (!market || rawClProducts.length === 0) {
