@@ -1,18 +1,18 @@
 {
   "extends": "./tsconfig.base.json",
+  "files": [],
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./netlify/functions/src/*"],
-      "@ui/*": ["./ui/src/*"]
+      "@/*": ["netlify/functions/src/*"],
+      "@ui/*": ["ui/src/*"]
     },
     "typeRoots": [
-      "./node_modules/@types",
-      "./netlify/functions/node_modules/@types"
+      "./node_modules/@types"
     ]
   },
   "references": [
-    { "path": "./ui/tsconfig.json" },
-    { "path": "./tsconfig.functions.json" }
+    { "path": "./ui" },
+    { "path": "./netlify/functions" }
   ]
 }
