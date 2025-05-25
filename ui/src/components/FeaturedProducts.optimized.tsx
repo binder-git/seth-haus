@@ -6,9 +6,24 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
 import { useProductStore } from "@/utils/product-store";
+// ✅ FIXED: Import the correct types from your existing type definitions
+import { MarketConfig } from "@/types/models/market";
+
+interface MemoizedSkeletonProps {
+  count?: number;
+}
+
+interface FeaturedProductsComponentProps {
+  className?: string;
+  selectedMarket?: MarketConfig;
+}
+
+interface FeaturedProductsProps {
+  className?: string;
+}
 
 // Memoized skeleton component to prevent recreation on each render
-const MemoizedSkeleton = React.memo(({ count = 3 }) => {
+const MemoizedSkeleton = React.memo<MemoizedSkeletonProps>(({ count = 3 }) => {
     return Array.from({ length: count }).map((_, index) => (
         <div key={index} className="bg-white rounded-lg shadow-md overflow-hidden">
             <Skeleton className="h-48 w-full" />
@@ -26,7 +41,7 @@ const MemoizedSkeleton = React.memo(({ count = 3 }) => {
     ));
 });
 
-const FeaturedProductsComponent = React.memo(({ className, selectedMarket }) => {
+const FeaturedProductsComponent = React.memo<FeaturedProductsComponentProps>(({ className, selectedMarket }) => {
     // Memoize market name to prevent recalculation
     const marketName = useMemo(() => selectedMarket?.name || 'UK', [selectedMarket?.name]);
     
@@ -41,7 +56,7 @@ const FeaturedProductsComponent = React.memo(({ className, selectedMarket }) => 
             type: typeof marketName
         });
         
-        // Fetch products when market changes
+        // ✅ FIXED: Use the imported MarketConfig type directly
         if (selectedMarket) {
             fetchProducts(selectedMarket);
         }
@@ -56,7 +71,7 @@ const FeaturedProductsComponent = React.memo(({ className, selectedMarket }) => 
     const memoizedSkeletons = useMemo(() => <MemoizedSkeleton count={3} />, []);
     
     return (
-        <section className={`py-16 bg-gray-50 ${className}`}>
+        <section className={`py-16 bg-gray-50 ${className || ''}`}>
             <div className="container mx-auto px-4">
                 <div className="flex justify-between items-center mb-8">
                     <div>
@@ -104,7 +119,10 @@ const FeaturedProductsComponent = React.memo(({ className, selectedMarket }) => 
                                 className="block focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 rounded-lg"
                                 aria-label={`View details for ${product.name}`}
                             >
-                                <ProductItemCard product={product} />
+                                <ProductItemCard 
+                                    product={product} 
+                                    marketId={selectedMarket?.id}
+                                />
                             </Link>
                         ))
                     ) : (
@@ -119,8 +137,8 @@ const FeaturedProductsComponent = React.memo(({ className, selectedMarket }) => 
 });
 
 // Main component that connects to the context
-const FeaturedProducts = ({ className }) => {
-    const { selectedMarket } = useOutletContext();
+const FeaturedProducts: React.FC<FeaturedProductsProps> = ({ className }) => {
+    const { selectedMarket } = useOutletContext<{ selectedMarket: MarketConfig }>();
     return (
         <FeaturedProductsComponent 
             selectedMarket={selectedMarket}
