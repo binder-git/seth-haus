@@ -7,6 +7,9 @@ import { RootLayout } from "./components/RootLayout.tsx";
 
 console.log('[Router] Configuring routes...');
 
+// Debug: Log all user routes
+console.log('[Router] User routes:', userRoutes);
+
 const router = createBrowserRouter([
   {
     path: "/",
@@ -24,7 +27,7 @@ const router = createBrowserRouter([
   }
 ]);
 
-// Log route changes
+// Enhanced route change logging
 let currentPathname = window.location.pathname;
 const originalPushState = window.history.pushState;
 const originalReplaceState = window.history.replaceState;
@@ -47,6 +50,20 @@ function handleRouteChange() {
   if (window.location.pathname !== currentPathname) {
     currentPathname = window.location.pathname;
     console.log('[Router] Route changed to:', currentPathname);
+    
+    // Debug: Check if route matches any configured routes
+    const matchedRoutes = router.routes[0].children?.filter(route => {
+      if (route.path === "*") return false;
+      if (route.path && route.path.includes(':')) {
+        // Handle dynamic routes like /products/:productCode
+        const pattern = route.path.replace(/:[^/]+/g, '[^/]+');
+        const regex = new RegExp(`^${pattern}$`);
+        return regex.test(currentPathname);
+      }
+      return route.path === currentPathname;
+    });
+    
+    console.log('[Router] Matched routes:', matchedRoutes?.map(r => r.path) || []);
   }
 }
 

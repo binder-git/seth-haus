@@ -1,5 +1,6 @@
 import React from "react";
-import { Link } from "react-router-dom"; // <-- Import Link
+import { Link } from "react-router-dom";
+import { Mail, ExternalLink } from "lucide-react";
 
 export interface Props {
   className?: string;
@@ -7,43 +8,90 @@ export interface Props {
 
 export const SimpleFooter = ({ className = "" }: Props) => {
   return (
-    <footer className={`bg-gray-100 py-12 ${className}`}>
+    <footer className={`bg-muted/30 border-t border-border py-16 ${className}`}>
       <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
-            <h3 className="text-lg font-bold mb-4">Seth's Triathlon Haus</h3>
-            <p className="text-sm text-muted-foreground">
-              Your premier destination for specialized triathlon gear, catering to swimmers, cyclists, and runners alike.
+            <h3 className="text-xl font-bold mb-4 text-foreground">Seth's Triathlon Haus</h3>
+            <p className="text-base text-muted-foreground leading-relaxed">
+              Your premier destination for specialized triathlon gear that doesn't exist. 
+              We've been not delivering excellence since never.
             </p>
           </div>
           
           <div>
-            <h4 className="text-md font-semibold mb-4">Shop</h4>
-            <ul className="space-y-2">
-              <li><a href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">Swim</a></li>
-              <li><a href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">Bike</a></li>
-              <li><a href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">Run</a></li>
-              <li><a href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">Triathlon</a></li>
+            <h4 className="text-lg font-semibold mb-4 text-foreground">Shop (Theoretically)</h4>
+            <ul className="space-y-3">
+              <li>
+                <Link to="/products?category=swim" className="text-base text-muted-foreground hover:text-primary transition-colors">
+                  Swim Gear
+                </Link>
+              </li>
+              <li>
+                <Link to="/products?category=bike" className="text-base text-muted-foreground hover:text-primary transition-colors">
+                  Bike Equipment
+                </Link>
+              </li>
+              <li>
+                <Link to="/products?category=run" className="text-base text-muted-foreground hover:text-primary transition-colors">
+                  Running Gear
+                </Link>
+              </li>
+              <li>
+                <Link to="/products?category=triathlon" className="text-base text-muted-foreground hover:text-primary transition-colors">
+                  Triathlon Suits
+                </Link>
+              </li>
             </ul>
           </div>
           
           <div>
-            <h4 className="text-md font-semibold mb-4">Customer Service</h4>
-            <ul className="space-y-2">
-              <li><a href="mailto:hello@seth.haus" className="text-sm text-muted-foreground hover:text-primary transition-colors">Contact Us</a></li>
-              <li><Link to="/faq-page" className="text-sm text-muted-foreground hover:text-primary transition-colors">FAQs</Link></li>
-
+            <h4 className="text-lg font-semibold mb-4 text-foreground">More information</h4>
+            <ul className="space-y-3">
+              <li>
+                <a 
+                  href="mailto:hello@seth.haus" 
+                  className="text-base text-muted-foreground hover:text-primary transition-colors flex items-center gap-2"
+                >
+                  <Mail className="w-4 h-4" />
+                  Send me an email
+                </a>
+              </li>
+              <li>
+                <Link 
+                  to="/faq-page" 
+                  className="text-base text-muted-foreground hover:text-primary transition-colors"
+                >
+                  FAQs
+                </Link>
+              </li>
+              <li>
+                <span className="text-base text-muted-foreground">
+                  Shipping Info (Spoiler: It's not happening)
+                </span>
+              </li>
+              <li>
+                <a 
+                  href="https://www.linkedin.com/in/sethbindernagel/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-base text-muted-foreground hover:text-primary transition-colors flex items-center gap-2"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  More of Seth's work
+                </a>
+              </li>
             </ul>
           </div>
-          
-
         </div>
         
-        <div className="border-t border-gray-200 mt-10 pt-6 flex flex-col md:flex-row justify-between items-center">
-          <p className="text-sm text-muted-foreground mb-4 md:mb-0">
-            &copy; {new Date().getFullYear()} Seth's Triathlon Haus. All rights reserved.
+        <div className="border-t border-border mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+          <p className="text-base text-muted-foreground">
+            &copy; {new Date().getFullYear()} Seth's Triathlon Haus. All rights reserved (to nothing).
           </p>
-
+          <p className="text-base text-muted-foreground italic">
+            "Where dreams come to shop and leave empty-handed."
+          </p>
         </div>
       </div>
     </footer>
