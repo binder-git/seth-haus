@@ -78,11 +78,11 @@ export class Brain<SecurityDataType = unknown> extends HttpClient<SecurityDataTy
    * @tags dbtn/module:commerce_layer
    * @name get_featured_products
    * @summary Get Featured Products
-   * @request GET:/.netlify/functions/featured-products
+   * @request GET:/api/featured-products
    */
   get_featured_products = async (query: GetFeaturedProductsParams, params: RequestParams = {}) => {
     const response = await fetch(
-      `/.netlify/functions/featured-products?market=${query.market}`,
+      `/api/featured-products?market=${query.market}`,
       {
         method: 'GET',
         headers: {
@@ -140,7 +140,7 @@ export class Brain<SecurityDataType = unknown> extends HttpClient<SecurityDataTy
    */
   commerce_layer_health_check = (params: RequestParams = {}) =>
     this.request<CommerceLayerHealthCheckData, any>({
-      path: `/.netlify/functions/health`,
+      path: `/api/health`,
       method: "GET",
       ...params,
     });

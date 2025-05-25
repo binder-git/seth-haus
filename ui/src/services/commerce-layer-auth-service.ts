@@ -25,7 +25,7 @@ export class CommerceLayerAuthService {
   static async getAccessToken(): Promise<TokenResponse> {
     try {
       const response = await axios.post<TokenResponse>(
-        '/.netlify/functions/commerce-layer-auth',
+        '/api/commerce-layer-auth',
         {},
         {
           headers: {
@@ -48,7 +48,7 @@ export class CommerceLayerAuthService {
   static async validateToken(accessToken: string): Promise<TokenValidationResponse> {
     try {
       const response = await axios.post<TokenValidationResponse>(
-        '/.netlify/functions/validate-token',
+        '/api/validate-token',
         { access_token: accessToken },
         {
           headers: {
