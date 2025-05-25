@@ -99,12 +99,15 @@ const FeaturedProductsComponent = React.memo(({ className, selectedMarket }) => 
                     ) : filteredProducts.length > 0 ? (
                         filteredProducts.map((product) => (
                             <Link
-                                key={product.id}
+                                key={`link-${product.id}-${selectedMarket?.id}`}
                                 to={`/product-detail-page?sku=${product.code}&market=${marketName}`}
                                 className="block focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 rounded-lg"
                                 aria-label={`View details for ${product.name}`}
                             >
-                                <ProductItemCard product={product} />
+                                <ProductItemCard 
+                                    product={product} 
+                                    marketId={selectedMarket?.id}
+                                />
                             </Link>
                         ))
                     ) : (
