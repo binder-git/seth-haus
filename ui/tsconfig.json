@@ -2,7 +2,8 @@
   "compilerOptions": {
     "composite": true,
     "declaration": true,
-    "emitDeclarationOnly": true,
+    "declarationDir": "./dist/types",
+    "outDir": "./dist",
     "target": "ESNext",
     "module": "ESNext",
     "moduleResolution": "node",
@@ -33,7 +34,7 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "noEmit": false,
+    "noEmit": true,
     "allowJs": true,
     "types": ["node", "vite/client"],
     "lib": ["DOM", "DOM.Iterable", "ESNext"]
