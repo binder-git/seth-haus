@@ -65,12 +65,6 @@ const ProductItemCardComponent = ({ product, className = "", onViewDetailsClick 
     });
   }
 
-  // Debug Commerce Layer Drop-in
-  React.useEffect(() => {
-    console.log(`[ProductItemCard] Initializing cl-price for SKU: ${productCode}`);
-    console.log('[ProductItemCard] Commerce Layer config:', (window as any).commercelayerConfig);
-  }, [productCode]);
-
   return (
     <Card
       className={cn("overflow-hidden shadow-sm hover:shadow-lg transition-shadow duration-300 bg-card flex flex-col h-full", className)}
@@ -120,25 +114,19 @@ const ProductItemCardComponent = ({ product, className = "", onViewDetailsClick 
 
         {/* Price and Button Layout - Side by side */}
         <div className="flex justify-between items-center mt-auto">
-          {/* Use v1 clayer-price syntax */}
-{/* Use explicit cl-price with proper attributes */}
-{/* Use correct v2 cl-price syntax with nested elements */}
-<div className="flex flex-col flex-grow">
-  <cl-price code={productCode}>
-    <cl-price-amount type="price" class="text-lg font-bold text-primary"></cl-price-amount>
-    <cl-price-amount type="compare-at" class="text-sm text-muted-foreground line-through"></cl-price-amount>
-  </cl-price>
-  
-  {/* Debug info for development */}
-  {process.env.NODE_ENV === 'development' && (
-    <span className="text-xs text-muted-foreground mt-1">
-      SKU: {productCode}
-    </span>
-  )}
-</div>
-
-
-
+          <div className="flex flex-col flex-grow">
+            <cl-price code={productCode}>
+              <cl-price-amount type="price" class="text-lg font-bold text-primary"></cl-price-amount>
+              <cl-price-amount type="compare-at" class="text-sm text-muted-foreground line-through"></cl-price-amount>
+            </cl-price>
+            
+            {/* Debug info for development */}
+            {process.env.NODE_ENV === 'development' && (
+              <span className="text-xs text-muted-foreground mt-1">
+                SKU: {productCode}
+              </span>
+            )}
+          </div>
 
           {/* View Product Button - Positioned to the right */}
           <Button

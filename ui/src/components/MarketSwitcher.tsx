@@ -38,8 +38,13 @@ export const MarketSwitcher = ({
     setMarket(newMarket);
     console.log('[MarketSwitcher] Market updated in global store and persisted to localStorage');
     
-    // Remove page refresh - let persistence and Commerce Layer handle the update naturally
-    // The market will now persist across page refreshes and browser sessions
+    // ✅ FORCE page reload to reinitialize Commerce Layer Drop-in components
+    // This is the only reliable way to make Commerce Layer components respond to market changes
+    console.log('[MarketSwitcher] Market updated, forcing page reload for Commerce Layer components');
+    
+    setTimeout(() => {
+      window.location.reload();
+    }, 100);
   };
 
   // Get display text based on current market
