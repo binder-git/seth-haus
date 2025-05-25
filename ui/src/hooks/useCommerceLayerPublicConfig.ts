@@ -17,7 +17,7 @@ export function useCommerceLayerPublicConfig() {
       try {
         // Fetch from the Netlify Function endpoint
         // Vite's proxy (configured in ui/vite.config.ts) will handle this during dev
-        const response = await fetch('/.netlify/functions/config');
+        const response = await fetch('/api/config');
         if (!response.ok) {
           throw new Error(`Failed to fetch config: ${response.statusText}`);
         }

@@ -37,7 +37,7 @@ export declare class Brain<SecurityDataType = unknown> extends HttpClient<Securi
      * @tags dbtn/module:commerce_layer
      * @name get_featured_products
      * @summary Get Featured Products
-     * @request GET:/.netlify/functions/featured-products
+     * @request GET:/api/featured-products
      */
     get_featured_products: (query: GetFeaturedProductsParams, params?: RequestParams) => Promise<any>;
     /**

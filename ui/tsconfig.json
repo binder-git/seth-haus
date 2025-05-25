@@ -37,6 +37,7 @@
     "noEmit": true,
     "allowJs": true,
     "types": ["node", "vite/client"],
+    "typeRoots": ["./node_modules/@types", "./node_modules"],
     "lib": ["DOM", "DOM.Iterable", "ESNext"]
   },
   "include": ["src", "src/**/*.d.ts", "vite.config.ts"],

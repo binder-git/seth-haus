@@ -18,10 +18,10 @@ class CommerceLayerApi {
 
   constructor(marketId: string = 'UK') {
     this.marketId = marketId;
-    // Use the VITE_API_BASE_PATH from your .env file
-    // In local dev, this will be "/.netlify/functions"
-    // In production/build, this would typically resolve to "" or the actual path if deployed to Netlify
-    this.apiBasePath = import.meta.env.VITE_API_BASE_PATH;
+    // Updated to use /api/ instead of /api/
+    // In local dev, this will be "/api"
+    // In production/build, this will use the redirect to /api/
+    this.apiBasePath = '/api';
   }
 
   /**
@@ -33,7 +33,7 @@ class CommerceLayerApi {
 
   /**
    * Get featured products for the homepage
-   * Calls the 'featured-products' Netlify function
+   * Calls the 'featured-products' Netlify function via /api/ redirect
    */
   async getFeaturedProducts(category?: string): Promise<{ products: Product[] }> {
     const params = new URLSearchParams({
@@ -42,9 +42,7 @@ class CommerceLayerApi {
     });
 
     try {
-      // CRUCIAL CHANGE: Use the relative apiBasePath.
-      // The URL constructor correctly combines it with window.location.origin
-      // if apiBasePath is a relative path (like "/.netlify/functions").
+      // CRUCIAL CHANGE: Use /api/ path which redirects to /api/
       const url = new URL(`${this.apiBasePath}/featured-products?${params.toString()}`, window.location.origin);
       console.log(`[CommerceLayerApi] Fetching featured products from: ${url.toString()}`); // Use .toString() for clarity
       
@@ -74,7 +72,7 @@ class CommerceLayerApi {
 
   /**
    * Get products listing with filtering options
-   * Calls the 'product-listing' Netlify function
+   * Calls the 'product-listing' Netlify function via /api/ redirect
    */
   async getProductsListing(options: {
     category?: string;
@@ -96,7 +94,7 @@ class CommerceLayerApi {
     });
 
     try {
-      // CRUCIAL CHANGE: Use the relative apiBasePath here too.
+      // CRUCIAL CHANGE: Use /api/ path which redirects to /api/
       const url = new URL(`${this.apiBasePath}/product-listing?${params.toString()}`, window.location.origin);
       console.log(`[CommerceLayerApi] Fetching product listing from: ${url.toString()}`);
 

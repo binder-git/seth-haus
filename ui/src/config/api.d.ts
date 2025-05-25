@@ -1,5 +1,5 @@
 export declare const API: {
-    readonly baseUrl: "/.netlify/functions";
+    readonly baseUrl: "/api";
     readonly endpoints: {
         readonly base: string;
     };

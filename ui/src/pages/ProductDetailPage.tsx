@@ -126,7 +126,7 @@ const ProductDetailPage: React.FC = () => {
         market: market.id || 'market:id:vjzmJhvEDo'
       });
 
-      const apiUrl = `/.netlify/functions/product-listing?${params.toString()}`;
+      const apiUrl = `/api/product-listing?${params.toString()}`;
       console.log('[ProductDetailPage] Fetching from:', apiUrl);
 
       const response = await fetch(apiUrl, {

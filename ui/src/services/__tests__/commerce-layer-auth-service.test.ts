@@ -38,7 +38,7 @@ describe('CommerceLayerAuthService', () => {
         expect(typeof token.acquired_at).toBe('number');
       }
       expect(mockedAxios.post).toHaveBeenCalledWith(
-        '/.netlify/functions/commerce-layer-auth',
+        '/api/commerce-layer-auth',
         {},
         { headers: { 'Content-Type': 'application/json' } }
       );
@@ -68,7 +68,7 @@ describe('CommerceLayerAuthService', () => {
       
       expect(result).toEqual(mockValidationResponse);
       expect(mockedAxios.post).toHaveBeenCalledWith(
-        '/.netlify/functions/validate-token',
+        '/api/validate-token',
         { access_token: 'valid_token' },
         { headers: { 'Content-Type': 'application/json' } }
       );

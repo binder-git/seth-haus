@@ -108,7 +108,7 @@ const Products: React.FC = () => {
         params.append('tag', category);
       }
 
-      const apiUrl = `/.netlify/functions/product-listing?${params.toString()}`;
+      const apiUrl = `/api/product-listing?${params.toString()}`;
       console.log('[Products] Fetching from:', apiUrl);
 
       const response = await fetch(apiUrl, {

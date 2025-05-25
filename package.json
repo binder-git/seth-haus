@@ -27,10 +27,16 @@
     "express": "^5.1.0",
     "http-proxy-middleware": "^3.0.5",
     "node-fetch": "^2.7.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-router-dom": "^7.6.0",
     "typescript": "^5.8.3"
   },
   "devDependencies": {
     "@types/node": "^20.17.50",
+    "@types/react": "^19.1.5",
+    "@types/react-dom": "^19.1.5",
+    "@types/react-router-dom": "^5.3.3",
     "netlify-cli": "^17.0.0"
   }
 }
