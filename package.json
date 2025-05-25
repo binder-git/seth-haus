@@ -18,7 +18,7 @@
     "start": "netlify dev"
   },
   "dependencies": {
-    "@commercelayer/sdk": "^6.41.0",
+    "@netlify/functions": "^3.1.9",
     "@types/jest": "^29.5.14",
     "@types/node-fetch": "^2.6.12",
     "axios": "^1.9.0",
@@ -26,12 +26,11 @@
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "http-proxy-middleware": "^3.0.5",
-    "node-fetch": "^3.3.2"
+    "node-fetch": "^2.7.0",
+    "typescript": "^5.8.3"
   },
   "devDependencies": {
-    "@netlify/functions": "^3.1.9",
     "@types/node": "^20.17.50",
-    "netlify-cli": "^17.0.0",
-    "typescript": "^5.8.3"
+    "netlify-cli": "^17.0.0"
   }
 }
