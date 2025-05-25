@@ -1054,11 +1054,6 @@
     "@types/lodash.mergewith" "4.6.9"
     lodash.mergewith "4.6.2"
 
-"@commercelayer/sdk@^6.41.0":
-  version "6.41.0"
-  resolved "https://registry.npmjs.org/@commercelayer/sdk/-/sdk-6.41.0.tgz"
-  integrity sha512-twNMZ9pbSKEqVURCGjxbh7/uUeaz+NvSGPpqT+ZRQXMQe7XdQawQhlwcKaGlt/q9oZbKsPn4SJ5ICQAteIuZMg==
-
 "@date-fns/tz@1.2.0":
   version "1.2.0"
   resolved "https://registry.npmjs.org/@date-fns/tz/-/tz-1.2.0.tgz"
@@ -7477,7 +7472,7 @@ vite-tsconfig-paths@^5.1.4:
     globrex "^0.1.2"
     tsconfck "^3.0.3"
 
-vite@*, "vite@^4.2.0 || ^5.0.0 || ^6.0.0", vite@^5.4.19, vite@>=2.0.0:
+vite@*, "vite@^4.2.0 || ^5.0.0 || ^6.0.0", vite@>=2.0.0:
   version "5.4.19"
   resolved "https://registry.npmjs.org/vite/-/vite-5.4.19.tgz"
   integrity sha512-qO3aKv3HoQC8QKiNSTuUM1l9o/XX3+c+VTgLHbJWHZGeTPVAg2XwazI9UWzoxjIJCGCV2zU60uqMzjeLZuULqA==
