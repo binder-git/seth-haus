@@ -99,7 +99,6 @@
     "typescript": "^5.8.3",
     "vite-plugin-html": "^3.2.2",
     "vite-plugin-html-inject": "^1.1.2",
-    "vite-tsconfig-paths": "^5.1.4",
     "zustand": "^5.0.4"
   }
 }
