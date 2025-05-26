@@ -1,11 +1,11 @@
 ```markdown
 # Seth's Triathlon Haus
 
-A prototype e-commerce platform for triathlon gear, built to explore Commerce Layer's capabilities and micro frontend architecture.
+A prototype ecommerce platform for triathlon gear, built entirely with AI coding tools using React, the Commerce Layer API and micro frontends, and Netlify.
 
 ## About This Project
 
-This is a **proof-of-concept** e-commerce site that I built to challenge myself and demonstrate Commerce Layer's powerful headless commerce capabilities. While I'm not a professional developer, my role at Commerce Layer inspired me to create a real-world example of how our platform can transform any website into a fully functional online store.
+This is a **proof-of-concept** ecommerce site that I built to challenge myself to see if I could build a robust ecommerce web application using AI coding tools and never consulting a real developer. While I'm not a developermy role at Commerce Layer inspired me to create a real-world example of how our platform can transform any website into a fully-functional online store.
 
 > **Note: This is a demonstration site - no actual products are for sale!**
 
@@ -19,6 +19,7 @@ This is a **proof-of-concept** e-commerce site that I built to challenge myself 
 - [Commerce Layer Configuration](#commerce-layer-configuration)
 - [Learning Outcomes](#learning-outcomes)
 - [Live Demo](#live-demo)
+- [Acknowledgments](#acknowledgments)
 
 ## Commerce Layer Integration
 
@@ -29,19 +30,18 @@ This project showcases several key Commerce Layer features:
 This site uses Commerce Layer's **Drop-in JavaScript library** to embed commerce functionality with minimal coding:
 
 - **`cl-price` components** - Dynamic pricing that updates based on market selection
-- **`cl-cart` functionality** - Shopping cart with real-time updates  
+- **`cl-cart` functionality** - Commerce Layer's hosted (mini) cart and checkout with real-time updates  
 - **`cl-add-to-cart` buttons** - Seamless product addition
-- **Hosted checkout** - Secure, PCI-compliant checkout flow
 
 ### Multi-Market Commerce
 
-- **UK Market** - GBP pricing and UK-specific shipping
-- **EU Market** - EUR pricing and European shipping options
+- **UK Market** - GBP pricing and UK-specific placeholder shipping messaging and pricing 
+- **EU Market** - EUR pricing and European placeholder shipping messaging and pricing
 - **Dynamic market switching** with automatic price/currency updates
 
-### Micro Frontend Architecture
+### Commerce Layer's Micro Frontend Architecture
 
-This demonstrates how micro frontends extend the composable nature of microservices to the user interface - each commerce component operates independently while integrating seamlessly with the React application.
+This demonstrates how micro frontends extend the composable nature of microservices to the user interface. Each commerce component operates independently while seamlessly integrating with the React application.
 
 ## Tech Stack
 
@@ -58,7 +58,7 @@ This demonstrates how micro frontends extend the composable nature of microservi
 - ✅ **Market switching** - Dynamic currency and pricing updates
 - ✅ **Product catalog** - Real Commerce Layer SKUs and inventory
 - ✅ **Shopping cart** - Persistent cart with Commerce Layer state management
-- ✅ **Secure checkout** - Hosted checkout flow (though no actual purchases)
+- ✅ **Secure checkout** - PCI-compliant hosted checkout flow (though no actual purchases)
 
 ## Development
 
@@ -108,15 +108,13 @@ clientId: "your-client-id",
 scope: "market:id:your-market-id",
 domain: "commercelayer.io"
 };
-
 ```
-
-This enables the transformation of any plain HTML page into an enterprise-grade static commerce website, with almost no coding required.
 
 ## Learning Outcomes
 
 Building this prototype taught me:
 
+- **Prompt engineering** for AI coding tools, see the list of tools I used in the acknowledgments section
 - **Headless commerce architecture** and its benefits
 - **Micro frontend patterns** and component composition  
 - **API integration** and data transformation
@@ -127,13 +125,21 @@ Building this prototype taught me:
 
 Visit the live site: **[seth.haus](https://seth.haus)**
 
-*Remember: This is a demonstration site. You can add items to cart and explore the checkout flow, but no actual transactions will be processed.*
+*Remember: This is a demo site. You can add items to cart and explore the checkout flow, but no actual transactions will be processed.*
 
 ## Acknowledgments
 
-Built with [Commerce Layer](https://commercelayer.io) - the composable commerce platform that makes any website shoppable.
+I would not have been able to build this site with the following AI-coding tools:
+
+- **Databutton** - for the initial code generation
+- **Windsurf** - for code refactoring and AI coding assistance
+- **Claude** - for guiding me through Commerce Layer CLI commands, code refactoring, debugging build processes, and final AI coding assistance
+- **Peplexity** - Prompt management and interface, plus access to Claude 4.0, and image generation
+- **Netlify** - Deployment and hosting and AI build debugging tools
+
+Built with [Commerce Layer](https://commercelayer.io) and [Netlify](https://www.netlify.com).
 
 ---
 
-*This project demonstrates the power of Commerce Layer's micro frontend approach, showing how developers can add enterprise-grade commerce functionality to any website with minimal code.*
+*This project demonstrates the power of Commerce Layer's micro frontend approach, Netlify Functions and build deployement processes and hosting, showing how developers can add enterprise-grade commerce functionality to any website with minimal code.*
 ```
