@@ -218,20 +218,20 @@ const Products: React.FC = () => {
     <div className="container mx-auto px-4 py-8">
       {/* Page Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Products</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-3xl font-bold mb-2 text-gray-900 dark:text-white">Products</h1>
+        <p className="text-gray-600 dark:text-gray-300">
           Discover our range of triathlon gear and accessories
         </p>
       </div>
 
       {/* Mobile Layout: Stacked */}
       <div className="block md:hidden">
-        {/* Mobile Filters - Collapsible */}
-        <Card className="mb-6 relative z-20 bg-white">
+        {/* Mobile Filters - Dark Mode Support */}
+        <Card className="mb-6 relative z-20 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
           <CardContent className="p-4 space-y-4">
             {/* Category Filters */}
             <div>
-              <Label className="text-sm font-medium mb-2 block">Categories</Label>
+              <Label className="text-sm font-medium mb-2 block text-gray-900 dark:text-white">Categories</Label>
               <div className="flex flex-wrap gap-2">
                 {CATEGORIES.map((category) => (
                   <Button
@@ -239,7 +239,11 @@ const Products: React.FC = () => {
                     variant={currentCategory === category.slug ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => handleCategoryChange(category.slug)}
-                    className="text-xs"
+                    className={`text-xs ${
+                      currentCategory === category.slug 
+                        ? 'bg-primary text-primary-foreground hover:bg-primary/90' 
+                        : 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600'
+                    }`}
                   >
                     {category.name}
                   </Button>
@@ -249,7 +253,7 @@ const Products: React.FC = () => {
 
             {/* Price Range Filter */}
             <div>
-              <Label className="text-sm font-medium mb-2 block">
+              <Label className="text-sm font-medium mb-2 block text-gray-900 dark:text-white">
                 Price Range: £{priceRange[0]} - £{priceRange[1]}
               </Label>
               <Slider
@@ -258,7 +262,7 @@ const Products: React.FC = () => {
                 min={0}
                 max={maxPrice}
                 step={10}
-                className="w-full"
+                className="w-full [&_[role=slider]]:bg-white [&_[role=slider]]:dark:bg-gray-700 [&_[role=slider]]:border-gray-300 [&_[role=slider]]:dark:border-gray-600"
               />
             </div>
 
@@ -270,7 +274,7 @@ const Products: React.FC = () => {
                 handleCategoryChange('all');
                 setPriceRange([0, maxPrice]);
               }}
-              className="w-full"
+              className="w-full bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600"
             >
               Reset All Filters
             </Button>
@@ -281,7 +285,7 @@ const Products: React.FC = () => {
         <div className="relative z-10">
           {/* Products Count */}
           <div className="mb-4">
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-gray-600 dark:text-gray-300">
               {memoizedDisplayProducts.length} product{memoizedDisplayProducts.length !== 1 ? 's' : ''} found
               {currentCategory !== 'all' && (
                 <span className="ml-1">
@@ -293,11 +297,11 @@ const Products: React.FC = () => {
 
           {/* Products Grid */}
           {memoizedDisplayProducts.length === 0 ? (
-            <Card>
+            <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
               <CardContent className="pt-6">
                 <div className="text-center">
-                  <h3 className="text-lg font-semibold mb-2">No Products Found</h3>
-                  <p className="text-muted-foreground mb-4">
+                  <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">No Products Found</h3>
+                  <p className="text-gray-600 dark:text-gray-300 mb-4">
                     {currentCategory !== 'all' 
                       ? `No products found in the ${CATEGORIES.find(c => c.slug === currentCategory)?.name || currentCategory} category.`
                       : 'No products match your current filters.'
@@ -306,6 +310,7 @@ const Products: React.FC = () => {
                   <Button 
                     variant="outline" 
                     onClick={() => handleCategoryChange('all')}
+                    className="bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600"
                   >
                     View All Products
                   </Button>
@@ -338,13 +343,13 @@ const Products: React.FC = () => {
 
       {/* Desktop Layout: Sidebar + Content */}
       <div className="hidden md:flex gap-8">
-        {/* Left Sidebar - Filters */}
+        {/* Left Sidebar - Filters with Dark Mode */}
         <div className="w-64 shrink-0 relative z-20">
-          <Card className="sticky top-4 bg-white">
+          <Card className="sticky top-4 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
             <CardContent className="p-6 space-y-6">
               {/* Category Filters */}
               <div>
-                <Label className="text-sm font-medium mb-3 block">Categories</Label>
+                <Label className="text-sm font-medium mb-3 block text-gray-900 dark:text-white">Categories</Label>
                 <div className="space-y-2">
                   {CATEGORIES.map((category) => (
                     <Button
@@ -352,7 +357,11 @@ const Products: React.FC = () => {
                       variant={currentCategory === category.slug ? 'default' : 'ghost'}
                       size="sm"
                       onClick={() => handleCategoryChange(category.slug)}
-                      className="w-full justify-start transition-all duration-200"
+                      className={`w-full justify-start transition-all duration-200 ${
+                        currentCategory === category.slug 
+                          ? 'bg-primary text-primary-foreground hover:bg-primary/90' 
+                          : 'text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700'
+                      }`}
                     >
                       {category.name}
                     </Button>
@@ -361,15 +370,15 @@ const Products: React.FC = () => {
               </div>
 
               {/* Divider */}
-              <div className="border-t border-border"></div>
+              <div className="border-t border-gray-200 dark:border-gray-700"></div>
 
               {/* Price Range Filter */}
               <div>
-                <Label className="text-sm font-medium mb-3 block">
+                <Label className="text-sm font-medium mb-3 block text-gray-900 dark:text-white">
                   Price Range
                 </Label>
                 <div className="space-y-4">
-                  <div className="text-center text-sm text-muted-foreground">
+                  <div className="text-center text-sm text-gray-600 dark:text-gray-300">
                     £{priceRange[0]} - £{priceRange[1]}
                   </div>
                   <Slider
@@ -378,11 +387,11 @@ const Products: React.FC = () => {
                     min={0}
                     max={maxPrice}
                     step={10}
-                    className="w-full"
+                    className="w-full [&_[role=slider]]:bg-white [&_[role=slider]]:dark:bg-gray-700 [&_[role=slider]]:border-gray-300 [&_[role=slider]]:dark:border-gray-600"
                   />
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <Label htmlFor="min-price" className="text-xs text-muted-foreground">Min</Label>
+                      <Label htmlFor="min-price" className="text-xs text-gray-600 dark:text-gray-300">Min</Label>
                       <Input
                         id="min-price"
                         type="number"
@@ -391,11 +400,11 @@ const Products: React.FC = () => {
                           const newMin = Math.max(0, parseInt(e.target.value) || 0);
                           setPriceRange([newMin, priceRange[1]]);
                         }}
-                        className="h-8"
+                        className="h-8 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600"
                       />
                     </div>
                     <div>
-                      <Label htmlFor="max-price" className="text-xs text-muted-foreground">Max</Label>
+                      <Label htmlFor="max-price" className="text-xs text-gray-600 dark:text-gray-300">Max</Label>
                       <Input
                         id="max-price"
                         type="number"
@@ -404,7 +413,7 @@ const Products: React.FC = () => {
                           const newMax = Math.min(maxPrice, parseInt(e.target.value) || maxPrice);
                           setPriceRange([priceRange[0], newMax]);
                         }}
-                        className="h-8"
+                        className="h-8 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600"
                       />
                     </div>
                   </div>
@@ -420,7 +429,7 @@ const Products: React.FC = () => {
                     handleCategoryChange('all');
                     setPriceRange([0, maxPrice]);
                   }}
-                  className="w-full"
+                  className="w-full bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600"
                 >
                   Reset All Filters
                 </Button>
@@ -434,7 +443,7 @@ const Products: React.FC = () => {
           {/* Products Count and Market Info */}
           <div className="mb-6 flex justify-between items-center">
             <div>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-gray-600 dark:text-gray-300">
                 {memoizedDisplayProducts.length} product{memoizedDisplayProducts.length !== 1 ? 's' : ''} found
                 {currentCategory !== 'all' && (
                   <span className="ml-1">
@@ -443,23 +452,23 @@ const Products: React.FC = () => {
                 )}
               </p>
               {(priceRange[0] > 0 || priceRange[1] < maxPrice) && (
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-gray-500 dark:text-gray-400">
                   Price range: £{priceRange[0]} - £{priceRange[1]}
                 </p>
               )}
             </div>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-gray-600 dark:text-gray-300">
               Market: {market.name}
             </p>
           </div>
 
           {/* Products Grid */}
           {memoizedDisplayProducts.length === 0 ? (
-            <Card className="max-w-md mx-auto">
+            <Card className="max-w-md mx-auto bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
               <CardContent className="pt-6">
                 <div className="text-center">
-                  <h3 className="text-lg font-semibold mb-2">No Products Found</h3>
-                  <p className="text-muted-foreground mb-4">
+                  <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">No Products Found</h3>
+                  <p className="text-gray-600 dark:text-gray-300 mb-4">
                     {currentCategory !== 'all' 
                       ? `No products found in the ${CATEGORIES.find(c => c.slug === currentCategory)?.name || currentCategory} category.`
                       : 'No products match your current filters.'
@@ -470,6 +479,7 @@ const Products: React.FC = () => {
                       <Button 
                         variant="outline" 
                         onClick={() => handleCategoryChange('all')}
+                        className="bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600"
                       >
                         View All Products
                       </Button>
@@ -477,6 +487,7 @@ const Products: React.FC = () => {
                     <Button 
                       variant="outline" 
                       onClick={() => setPriceRange([0, maxPrice])}
+                      className="bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600"
                     >
                       Reset Price Filter
                     </Button>

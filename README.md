@@ -1,12 +1,12 @@
 # Seth's Triathlon Haus
 
-A prototype ecommerce platform for triathlon gear, built entirely with AI coding tools using React, the Commerce Layer API and micro frontends, and Netlify.
+An ecommerce prototype for triathlon gear, built entirely with AI coding tools using React, TypeScript, the Commerce Layer API and micro frontends, and Netlify.
 
 <img width="1239" alt="Seth's Triathlon Haus Home page" src="https://github.com/user-attachments/assets/34c2dee6-5dba-48bd-abf7-f402b5f30c77" />
 
 ## About This Project
 
-This is a **proof-of-concept** ecommerce site that I built to challenge myself to see if I could build a robust ecommerce web application using AI coding tools without ever consulting a real developer. While I'm not a developer, my role at Commerce Layer inspired me to create a real-world example of how to build a fully-functional online store using only AI coding tools.
+This is a **proof-of-concept** web application built entirely using AI coding tools. Everything you see on this site was created by me prompting AI (except the photos which are licensed on Unsplash for free, non-commercial use). I wanted to challenge myself to see if I could create a robust ecommerce store without ever consulting an actual human software engineer. Even though I'm not a developer, my role at Commerce Layer inspired me to create a real-world example of how to build a fully functional online store using only AI.
 
 > **Note: This is a demo site. No actual products are for sale.**
 
