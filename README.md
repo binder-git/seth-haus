@@ -1,10 +1,11 @@
+```markdown
 # Seth's Triathlon Haus
 
-A prototype ecommerce platform for triathlon gear, built entirely using AI by a non-devloper and meant to explore Commerce Layer's capabilities and micro frontend architecture.
+A prototype e-commerce platform for triathlon gear, built to explore Commerce Layer's capabilities and micro frontend architecture.
 
 ## About This Project
 
-This is a **proof-of-concept** ecommerce site that I built to challenge myself and demonstrate Commerce Layer's powerful headless commerce capabilities. While I'm not a developer, my role at Commerce Layer inspired me to create a real-world example of how our platform can transform any website into a fully functional online store. I built this entirely with AI without ever consulting a human developer. I wanted to prove that I could do it and that it was possible.
+This is a **proof-of-concept** e-commerce site that I built to challenge myself and demonstrate Commerce Layer's powerful headless commerce capabilities. While I'm not a professional developer, my role at Commerce Layer inspired me to create a real-world example of how our platform can transform any website into a fully functional online store.
 
 > **Note: This is a demonstration site - no actual products are for sale!**
 
@@ -28,18 +29,19 @@ This project showcases several key Commerce Layer features:
 This site uses Commerce Layer's **Drop-in JavaScript library** to embed commerce functionality with minimal coding:
 
 - **`cl-price` components** - Dynamic pricing that updates based on market selection
-- **`cl-cart` functionality** - Commerce Layer's hosted cart and checkout (mini) with real-time updates  
+- **`cl-cart` functionality** - Shopping cart with real-time updates  
 - **`cl-add-to-cart` buttons** - Seamless product addition
+- **Hosted checkout** - Secure, PCI-compliant checkout flow
 
 ### Multi-Market Commerce
 
-- **UK Market** - GBP pricing and UK-specific shipping placeholder text
-- **EU Market** - EUR pricing and European shipping placeholder text
+- **UK Market** - GBP pricing and UK-specific shipping
+- **EU Market** - EUR pricing and European shipping options
 - **Dynamic market switching** with automatic price/currency updates
 
 ### Micro Frontend Architecture
 
-This demonstrates how micro frontends extend the composable nature of microservices to the user interface. Each commerce component operates independently while integrating seamlessly with the React application.
+This demonstrates how micro frontends extend the composable nature of microservices to the user interface - each commerce component operates independently while integrating seamlessly with the React application.
 
 ## Tech Stack
 
@@ -62,37 +64,46 @@ This demonstrates how micro frontends extend the composable nature of microservi
 
 This project uses **Netlify Dev** for local development:
 
-Install dependencies
-npm install
-cd ui && npm install
+```
 
-Start local development (includes functions)
+# Install dependencies
+
+npm install
+cd ui \&\& npm install
+
+# Start local development (includes functions)
+
 netlify dev
 
-The site will be available at http://localhost:8888
-text
+# The site will be available at http://localhost:8888
+
+```
 
 ## Project Structure
 
+```
+
 .
 ├── netlify/
-│ └── functions/ # API endpoints for Commerce Layer integration
-│ ├── product-listing.ts # Product catalog API
-│ └── commerce-layer-auth.ts # Authentication handler
-├── ui/ # React frontend application
-│ ├── src/
-│ │ ├── components/ # React components
-│ │ ├── pages/ # Route components
-│ │ └── utils/ # Commerce Layer utilities
-│ └── public/ # Static assets
-├── _redirects # Netlify routing configuration
-└── netlify.toml # Build configuration
+│   └── functions/           \# API endpoints for Commerce Layer integration
+│       ├── product-listing.ts    \# Product catalog API
+│       └── commerce-layer-auth.ts \# Authentication handler
+├── ui/                     \# React frontend application
+│   ├── src/
+│   │   ├── components/     \# React components
+│   │   ├── pages/         \# Route components
+│   │   └── utils/         \# Commerce Layer utilities
+│   └── public/            \# Static assets
+├── _redirects             \# Netlify routing configuration
+└── netlify.toml          \# Build configuration
 
-text
+```
 
 ## Commerce Layer Configuration
 
 The site connects to Commerce Layer using the Drop-in library configuration:
+
+```
 
 window.commercelayerConfig = {
 clientId: "your-client-id",
@@ -100,7 +111,7 @@ scope: "market:id:your-market-id",
 domain: "commercelayer.io"
 };
 
-text
+```
 
 This enables the transformation of any plain HTML page into an enterprise-grade static commerce website, with almost no coding required.
 
@@ -127,3 +138,4 @@ Built with [Commerce Layer](https://commercelayer.io) - the composable commerce 
 ---
 
 *This project demonstrates the power of Commerce Layer's micro frontend approach, showing how developers can add enterprise-grade commerce functionality to any website with minimal code.*
+```
