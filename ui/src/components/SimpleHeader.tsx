@@ -4,7 +4,6 @@ import { MarketSwitcher } from './MarketSwitcher';
 import { useAppContext } from './AppProvider';
 import { ShoppingCart, X } from "lucide-react";
 
-// Remove the interface since we no longer need these props
 export default function SimpleHeader() {
   const navigate = useNavigate();
   const { clReady } = useAppContext();
@@ -13,14 +12,18 @@ export default function SimpleHeader() {
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       {/* Inner container that matches main content width */}
       <div className="mx-auto max-w-7xl px-4 md:px-6 lg:px-8">
-        <div className="flex h-16 items-center">
-          {/* Left Section - Logo flush to left edge */}
-          <Link to="/" className="flex items-center">
-            <span className="font-bold text-2xl">Seth's Triathlon Haus</span>
+        <div className="flex h-16 items-center justify-between">
+          {/* Left Section - Logo with responsive text */}
+          <Link to="/" className="flex items-center flex-shrink-0 min-w-0">
+            <span className="font-bold text-lg sm:text-xl md:text-2xl truncate">
+              <span className="sm:hidden">Seth's Tri Haus</span>
+              <span className="hidden sm:inline md:hidden">Seth's Tri Haus</span>
+              <span className="hidden md:inline">Seth's Triathlon Haus</span>
+            </span>
           </Link>
 
-          {/* Center Section - Navigation (takes remaining space and centers) */}
-          <nav className="hidden md:flex flex-1 items-center justify-center space-x-6">
+          {/* Center Section - Navigation (hidden on mobile, centered on desktop) */}
+          <nav className="hidden md:flex items-center justify-center space-x-6 flex-1 mx-8">
             <Link
               to="/products?category=swim"
               className="text-base font-medium text-muted-foreground transition-colors hover:text-foreground"
@@ -48,23 +51,23 @@ export default function SimpleHeader() {
           </nav>
 
           {/* Right Section - Market Switcher and Cart */}
-          <div className="flex items-center space-x-4">
-            {/* MarketSwitcher now uses global store - no props needed */}
-            <MarketSwitcher />
+          <div className="flex items-center space-x-2 sm:space-x-3 flex-shrink-0">
+            {/* MarketSwitcher with responsive sizing */}
+            <MarketSwitcher className="text-xs sm:text-sm" />
 
-            {/* Commerce Layer Mini-Cart */}
+            {/* Commerce Layer Mini-Cart with responsive sizing */}
             <div className="relative">
-              {/* Commerce Layer Cart Link with Mini-Cart */}
               <cl-cart-link class="relative inline-block">
-                <span className="relative inline-flex items-center p-2 hover:bg-accent rounded-md transition-colors cursor-pointer">
-                  <ShoppingCart className="h-6 w-6" />
-                  <span className="ml-1 text-sm">Cart</span>
-                  {/* Cart count in parentheses */}
-                  <span className="ml-1 text-sm">(<cl-cart-count></cl-cart-count>)</span>
+                <span className="relative inline-flex items-center p-1.5 sm:p-2 hover:bg-accent rounded-md transition-colors cursor-pointer">
+                  <ShoppingCart className="h-5 w-5 sm:h-6 sm:w-6" />
+                  {/* Hide "Cart" text on very small screens */}
+                  <span className="hidden xs:inline ml-1 text-xs sm:text-sm">Cart</span>
+                  {/* Cart count */}
+                  <span className="ml-1 text-xs sm:text-sm">(<cl-cart-count></cl-cart-count>)</span>
                 </span>
                 
-                {/* Mini-cart with open-on-add attribute */}
-                <cl-cart open-on-add="true" class="absolute right-0 top-full mt-2"></cl-cart>
+                {/* Mini-cart positioned responsively */}
+                <cl-cart open-on-add="true" class="absolute right-0 top-full mt-2 w-80 max-w-[90vw]"></cl-cart>
               </cl-cart-link>
             </div>
           </div>
