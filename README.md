@@ -1,4 +1,3 @@
-```markdown
 # Seth's Triathlon Haus
 
 A prototype ecommerce platform for triathlon gear, built entirely with AI coding tools using React, the Commerce Layer API and micro frontends, and Netlify.
@@ -142,4 +141,3 @@ Built with [Commerce Layer](https://commercelayer.io) and [Netlify](https://www.
 ---
 
 *This project demonstrates the power of Commerce Layer's micro frontend approach, Netlify Functions and build deployement processes and hosting, showing how developers can add enterprise-grade commerce functionality to any website with minimal code.*
-```
