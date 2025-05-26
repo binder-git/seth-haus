@@ -100,6 +100,11 @@ const ProductDetailPage: React.FC = () => {
   console.log(`[ProductDetailPage] URL Params - Product Code: ${productCode}, Market: ${market.name}`);
   console.log(`[ProductDetailPage] URL Product Code: ${urlProductCode}, Query SKU: ${searchParams.get('sku')}`);
 
+  // Scroll to top when product code changes (mobile Safari fix)
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [productCode]);
+
   // Check for Commerce Layer configuration
   useEffect(() => {
     const checkCommerceLayerConfig = () => {
@@ -203,12 +208,20 @@ const ProductDetailPage: React.FC = () => {
     }
   };
 
-  // Custom Related Product Card (without cl-price until Commerce Layer is ready)
+  // Custom Related Product Card with scroll-to-top fix
   const RelatedProductCard: React.FC<{ product: Product; onClick: () => void }> = ({ product, onClick }) => {
     const imageUrl = getImageUrl(product);
     
+    const handleClick = () => {
+      onClick();
+      // Scroll to top immediately after navigation with delay for mobile Safari
+      setTimeout(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }, 100);
+    };
+    
     return (
-      <Card className="overflow-hidden shadow-sm hover:shadow-lg transition-shadow duration-300 bg-card flex flex-col h-full cursor-pointer" onClick={onClick}>
+      <Card className="overflow-hidden shadow-sm hover:shadow-lg transition-shadow duration-300 bg-card flex flex-col h-full cursor-pointer" onClick={handleClick}>
         <CardContent className="p-3">
           <div className="w-full overflow-hidden relative group rounded-md mb-3">
             <img
@@ -410,7 +423,9 @@ const ProductDetailPage: React.FC = () => {
               <RelatedProductCard
                 key={relatedProduct.id}
                 product={relatedProduct}
-                onClick={() => navigate(`/products/${relatedProduct.attributes?.code}`)}
+                onClick={() => {
+                  navigate(`/products/${relatedProduct.attributes?.code}`);
+                }}
               />
             ))}
           </div>
