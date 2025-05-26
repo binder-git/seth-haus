@@ -1,0 +1,26 @@
+{
+  "entry": [
+    "ui/src/main.tsx",
+    "ui/src/pages/**/*.{js,ts,tsx}",
+    "netlify/functions/**/*.{js,ts}"
+  ],
+  "extensions": [".js", ".jsx", ".ts", ".tsx"],
+  "ignorePatterns": [
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/build/**",
+    "**/*.test.{js,jsx,ts,tsx}",
+    "**/*.spec.{js,jsx,ts,tsx}",
+    "**/*.stories.{js,jsx,ts,tsx}",
+    "**/coverage/**",
+    "netlify/edge-functions/**"
+  ],
+  "ignoreUnimported": [
+    "ui/public/**",
+    "netlify.toml",
+    "_redirects",
+    "ui/src/vite-env.d.ts"
+  ],
+  "respectGitignore": true,
+  "scannedDirs": ["./ui/src", "./netlify/functions"]
+}
