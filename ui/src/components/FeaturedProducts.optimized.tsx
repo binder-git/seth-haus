@@ -24,7 +24,7 @@ interface FeaturedProductsProps {
 // Memoized skeleton component to prevent recreation on each render
 const MemoizedSkeleton = React.memo<MemoizedSkeletonProps>(({ count = 3 }) => {
     return Array.from({ length: count }).map((_, index) => (
-        <div key={index} className="bg-white rounded-lg shadow-md overflow-hidden">
+        <div key={index} className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
             <Skeleton className="h-48 w-full" />
             <div className="p-4 space-y-2">
                 <Skeleton className="h-4 w-1/4" />
@@ -69,23 +69,27 @@ const FeaturedProductsComponent = React.memo<FeaturedProductsComponentProps>(({ 
     const memoizedSkeletons = useMemo(() => <MemoizedSkeleton count={3} />, []);
     
     return (
-        <section className={`py-16 bg-gray-50 ${className || ''}`}>
+        <section className={`py-8 sm:py-12 md:py-16 bg-gray-50 dark:bg-gray-900 ${className || ''}`}>
             <div className="container mx-auto px-4">
-                <div className="flex justify-between items-center mb-8">
-                    <div>
-                        <h2 className="text-3xl font-bold mb-2">Featured Products</h2>
-                        <p className="text-muted-foreground">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 sm:mb-8">
+                    <div className="mb-4 sm:mb-0">
+                        {/* Make sure Featured Products title is visible and properly sized */}
+                        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2 text-gray-900 dark:text-white">
+                            Featured Products
+                        </h2>
+                        {/* Improve subtitle styling for mobile and dark mode */}
+                        <p className="text-base sm:text-lg text-gray-700 dark:text-gray-300 font-medium leading-relaxed">
                             Top picks for your {marketName === 'UK' ? 'United Kingdom' : 'European'} training needs
                         </p>
                     </div>
                     <Link 
                         to="/products" 
-                        className="inline-flex items-center text-primary hover:text-primary/80 transition-colors font-medium"
+                        className="inline-flex items-center text-primary hover:text-primary/80 transition-colors font-medium text-sm sm:text-base"
                     >
                         View all products
                         <svg 
                             xmlns="http://www.w3.org/2000/svg" 
-                            className="h-5 w-5 ml-1" 
+                            className="h-4 w-4 sm:h-5 sm:w-5 ml-1" 
                             viewBox="0 0 20 20" 
                             fill="currentColor"
                         >
@@ -98,11 +102,11 @@ const FeaturedProductsComponent = React.memo<FeaturedProductsComponentProps>(({ 
                     </Link>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                     {isLoading ? (
                         memoizedSkeletons
                     ) : error ? (
-                        <div className="col-span-1 md:col-span-2 lg:col-span-3">
+                        <div className="col-span-1 sm:col-span-2 lg:col-span-3">
                             <Alert variant="destructive">
                                 <AlertTriangle className="h-4 w-4" />
                                 <AlertTitle>Error</AlertTitle>
@@ -123,7 +127,7 @@ const FeaturedProductsComponent = React.memo<FeaturedProductsComponentProps>(({ 
                             </Link>
                         ))
                     ) : (
-                        <div className="col-span-1 md:col-span-2 lg:col-span-3 text-center text-muted-foreground">
+                        <div className="col-span-1 sm:col-span-2 lg:col-span-3 text-center text-muted-foreground">
                             No featured products available for this market right now.
                         </div>
                     )}
