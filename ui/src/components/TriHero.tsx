@@ -30,16 +30,22 @@ export const TriHero = ({ className = "" }: Props) => {
       <div className="container mx-auto px-4 md:px-6 py-20 md:py-32 relative z-10">
         <div className="max-w-3xl">
           {/* Updated Title */}
-          <h1 className="text-4xl md:text-6xl font-bold text-white mb-4">Where Nothing's For Sale</h1>
+          <h1 className="text-4xl md:text-6xl font-bold text-white mb-4">
+            Where Nothing&apos;s For Sale
+          </h1>
           {/* Updated Subtitle - split into two paragraphs */}
           <p className="text-xl text-white/90 mb-4">
-            Welcome to the world's most exclusive triathlon shop. So exclusive, you can't buy a thing. This is a proof-of-concept I built with AI. <a href="mailto:hello@seth.haus" className="font-bold text-cyan-400 hover:text-cyan-300 transition-colors">Ask me anything.</a>
+            Welcome to the world&apos;s most exclusive triathlon shop. So exclusive, you can&apos;t buy a thing. This is a proof-of-concept I built with AI.{" "}
+            <a 
+              href="mailto:hello@seth.haus" 
+              className="font-bold text-cyan-400 hover:text-cyan-300 transition-colors"
+            >
+              Ask me anything.
+            </a>
           </p>
           <p className="text-xl text-white/90 mb-8">
             Browse the finest imaginary gear for swim, bike, and run. Fill your cart with dreams. Payment options accepted: applause, disbelief.
           </p>
-          {/* Buttons removed */}
-          {/* Market selector removed from here */}
         </div>
       </div>
     </section>
