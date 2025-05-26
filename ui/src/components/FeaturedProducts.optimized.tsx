@@ -6,7 +6,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
 import { useProductStore } from "@/utils/product-store";
-// ✅ FIXED: Import the correct types from your existing type definitions
 import { MarketConfig } from "@/types/models/market";
 
 interface MemoizedSkeletonProps {
@@ -56,7 +55,6 @@ const FeaturedProductsComponent = React.memo<FeaturedProductsComponentProps>(({ 
             type: typeof marketName
         });
         
-        // ✅ FIXED: Use the imported MarketConfig type directly
         if (selectedMarket) {
             fetchProducts(selectedMarket);
         }
@@ -120,8 +118,7 @@ const FeaturedProductsComponent = React.memo<FeaturedProductsComponentProps>(({ 
                                 aria-label={`View details for ${product.name}`}
                             >
                                 <ProductItemCard 
-                                    product={product} 
-                                    marketId={selectedMarket?.id}
+                                    product={product}
                                 />
                             </Link>
                         ))
