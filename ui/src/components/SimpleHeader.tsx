@@ -12,19 +12,18 @@ export default function SimpleHeader() {
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       {/* Inner container that matches main content width */}
       <div className="mx-auto max-w-7xl px-4 md:px-6 lg:px-8">
-        <div className="flex h-16 items-center">
+        <div className="flex h-16 items-center justify-between">
           {/* Left Section - Logo with responsive text */}
-          <Link to="/" className="flex items-center flex-shrink-0">
-            {/* Mobile: Show shorter version */}
-            <span className="font-bold text-lg sm:text-xl md:text-2xl">
-              <span className="sm:hidden">Seth.Haus</span>
-              <span className="hidden sm:inline md:hidden">Seth.Haus</span>
+          <Link to="/" className="flex items-center flex-shrink-0 min-w-0">
+            <span className="font-bold text-lg sm:text-xl md:text-2xl truncate">
+              <span className="sm:hidden">Seth's Tri Haus</span>
+              <span className="hidden sm:inline md:hidden">Seth's Tri Haus</span>
               <span className="hidden md:inline">Seth's Triathlon Haus</span>
             </span>
           </Link>
 
-          {/* Center Section - Navigation (takes remaining space and centers) */}
-          <nav className="hidden md:flex flex-1 items-center justify-center space-x-6 mx-4">
+          {/* Center Section - Navigation (hidden on mobile, centered on desktop) */}
+          <nav className="hidden md:flex items-center justify-center space-x-6 flex-1 mx-8">
             <Link
               to="/products?category=swim"
               className="text-base font-medium text-muted-foreground transition-colors hover:text-foreground"
@@ -52,21 +51,19 @@ export default function SimpleHeader() {
           </nav>
 
           {/* Right Section - Market Switcher and Cart */}
-          <div className="flex items-center space-x-2 sm:space-x-4 flex-shrink-0">
+          <div className="flex items-center space-x-2 sm:space-x-3 flex-shrink-0">
             {/* MarketSwitcher with responsive sizing */}
-            <div className="flex-shrink-0">
-              <MarketSwitcher className="text-sm" />
-            </div>
+            <MarketSwitcher className="text-xs sm:text-sm" />
 
             {/* Commerce Layer Mini-Cart with responsive sizing */}
-            <div className="relative flex-shrink-0">
+            <div className="relative">
               <cl-cart-link class="relative inline-block">
-                <span className="relative inline-flex items-center p-1 sm:p-2 hover:bg-accent rounded-md transition-colors cursor-pointer">
+                <span className="relative inline-flex items-center p-1.5 sm:p-2 hover:bg-accent rounded-md transition-colors cursor-pointer">
                   <ShoppingCart className="h-5 w-5 sm:h-6 sm:w-6" />
                   {/* Hide "Cart" text on very small screens */}
-                  <span className="hidden xs:inline ml-1 text-sm">Cart</span>
+                  <span className="hidden xs:inline ml-1 text-xs sm:text-sm">Cart</span>
                   {/* Cart count */}
-                  <span className="ml-1 text-sm">(<cl-cart-count></cl-cart-count>)</span>
+                  <span className="ml-1 text-xs sm:text-sm">(<cl-cart-count></cl-cart-count>)</span>
                 </span>
                 
                 {/* Mini-cart positioned responsively */}
