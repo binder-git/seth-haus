@@ -64,25 +64,24 @@ This demonstrates how micro frontends extend the composable nature of microservi
 
 This project uses **Netlify Dev** for local development:
 
-```
+### Install dependencies
 
-# Install dependencies
-
+```bash
 npm install
 cd ui \&\& npm install
-
-# Start local development (includes functions)
-
-netlify dev
-
-# The site will be available at http://localhost:8888
-
 ```
+
+### Start local development (includes functions)
+
+```bash
+netlify dev
+```
+
+### The site will be available at http://localhost:8888
 
 ## Project Structure
 
-```
-
+```bash
 .
 ├── netlify/
 │   └── functions/           \# API endpoints for Commerce Layer integration
@@ -96,14 +95,13 @@ netlify dev
 │   └── public/            \# Static assets
 ├── _redirects             \# Netlify routing configuration
 └── netlify.toml          \# Build configuration
-
 ```
 
 ## Commerce Layer Configuration
 
 The site connects to Commerce Layer using the Drop-in library configuration:
 
-```
+```javascript
 
 window.commercelayerConfig = {
 clientId: "your-client-id",
