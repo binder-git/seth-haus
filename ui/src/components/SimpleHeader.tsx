@@ -55,7 +55,7 @@ export default function SimpleHeader() {
             {/* MarketSwitcher with responsive sizing */}
             <MarketSwitcher className="text-xs sm:text-sm" />
 
-            {/* Commerce Layer Mini-Cart with responsive sizing */}
+            {/* Commerce Layer Full Cart Link - No Mini Cart */}
             <div className="relative">
               <cl-cart-link class="relative inline-block">
                 <span className="relative inline-flex items-center p-1.5 sm:p-2 hover:bg-accent rounded-md transition-colors cursor-pointer">
@@ -66,8 +66,7 @@ export default function SimpleHeader() {
                   <span className="ml-1 text-xs sm:text-sm">(<cl-cart-count></cl-cart-count>)</span>
                 </span>
                 
-                {/* Mini-cart positioned responsively */}
-                <cl-cart open-on-add="true" class="absolute right-0 top-full mt-2 w-80 max-w-[90vw]"></cl-cart>
+                {/* Removed the cl-cart element - now clicking will go to full hosted cart */}
               </cl-cart-link>
             </div>
           </div>
