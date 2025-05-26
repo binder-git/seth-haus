@@ -19,6 +19,8 @@ This is a **proof-of-concept** ecommerce site that I built to challenge myself t
 - [Learning Outcomes](#learning-outcomes)
 - [Live Demo](#live-demo)
 - [Acknowledgments](#acknowledgments)
+  
+<img width="1239" alt="Seth's Triathlon Haus Home page" src="https://github.com/user-attachments/assets/34c2dee6-5dba-48bd-abf7-f402b5f30c77" />
 
 ## Commerce Layer Integration
 
