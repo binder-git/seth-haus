@@ -1,5 +1,3 @@
-// ui/src/pages/Products.tsx
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useMarketStore } from '@/utils/market-store';
@@ -126,7 +124,6 @@ const Products: React.FC = () => {
       const data: ProductListingResponse = await response.json();
       console.log('[Products] API response:', data);
       console.log('[Products] Products received:', data.products?.length || 0);
-
       setProducts(data.products || []);
     } catch (err) {
       console.error('[Products] Error fetching products:', err);
@@ -227,11 +224,123 @@ const Products: React.FC = () => {
         </p>
       </div>
 
-      {/* Main Layout: Sidebar + Content */}
-      <div className="flex gap-8">
+      {/* Mobile Layout: Stacked */}
+      <div className="block md:hidden">
+        {/* Mobile Filters - Collapsible */}
+        <Card className="mb-6 relative z-20 bg-white">
+          <CardContent className="p-4 space-y-4">
+            {/* Category Filters */}
+            <div>
+              <Label className="text-sm font-medium mb-2 block">Categories</Label>
+              <div className="flex flex-wrap gap-2">
+                {CATEGORIES.map((category) => (
+                  <Button
+                    key={category.id}
+                    variant={currentCategory === category.slug ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => handleCategoryChange(category.slug)}
+                    className="text-xs"
+                  >
+                    {category.name}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            {/* Price Range Filter */}
+            <div>
+              <Label className="text-sm font-medium mb-2 block">
+                Price Range: £{priceRange[0]} - £{priceRange[1]}
+              </Label>
+              <Slider
+                value={priceRange}
+                onValueChange={(value) => setPriceRange(value as [number, number])}
+                min={0}
+                max={maxPrice}
+                step={10}
+                className="w-full"
+              />
+            </div>
+
+            {/* Reset Filters */}
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => {
+                handleCategoryChange('all');
+                setPriceRange([0, maxPrice]);
+              }}
+              className="w-full"
+            >
+              Reset All Filters
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Mobile Products Grid */}
+        <div className="relative z-10">
+          {/* Products Count */}
+          <div className="mb-4">
+            <p className="text-sm text-muted-foreground">
+              {memoizedDisplayProducts.length} product{memoizedDisplayProducts.length !== 1 ? 's' : ''} found
+              {currentCategory !== 'all' && (
+                <span className="ml-1">
+                  in {CATEGORIES.find(c => c.slug === currentCategory)?.name || currentCategory}
+                </span>
+              )}
+            </p>
+          </div>
+
+          {/* Products Grid */}
+          {memoizedDisplayProducts.length === 0 ? (
+            <Card>
+              <CardContent className="pt-6">
+                <div className="text-center">
+                  <h3 className="text-lg font-semibold mb-2">No Products Found</h3>
+                  <p className="text-muted-foreground mb-4">
+                    {currentCategory !== 'all' 
+                      ? `No products found in the ${CATEGORIES.find(c => c.slug === currentCategory)?.name || currentCategory} category.`
+                      : 'No products match your current filters.'
+                    }
+                  </p>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => handleCategoryChange('all')}
+                  >
+                    View All Products
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {memoizedDisplayProducts.map((product) => (
+                <ProductItemCard
+                  key={product.id}
+                  product={{
+                    id: product.id,
+                    code: product.attributes?.code || '',
+                    name: product.attributes?.name || '',
+                    description: product.attributes?.description || '',
+                    image_url: product.attributes?.image_url || null
+                  }}
+                  onViewDetailsClick={() => handleViewDetails(
+                    product.attributes?.code || '', 
+                    product.id
+                  )}
+                  className="h-full"
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Desktop Layout: Sidebar + Content */}
+      <div className="hidden md:flex gap-8">
         {/* Left Sidebar - Filters */}
-        <div className="w-64 shrink-0">
-          <Card className="sticky top-4">
+        <div className="w-64 shrink-0 relative z-20">
+          <Card className="sticky top-4 bg-white">
             <CardContent className="p-6 space-y-6">
               {/* Category Filters */}
               <div>
@@ -321,7 +430,7 @@ const Products: React.FC = () => {
         </div>
 
         {/* Main Content Area */}
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 relative z-10">
           {/* Products Count and Market Info */}
           <div className="mb-6 flex justify-between items-center">
             <div>
