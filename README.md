@@ -5,9 +5,9 @@ A prototype ecommerce platform for triathlon gear, built entirely with AI coding
 
 ## About This Project
 
-This is a **proof-of-concept** ecommerce site that I built to challenge myself to see if I could build a robust ecommerce web application using AI coding tools and never consulting a real developer. While I'm not a developermy role at Commerce Layer inspired me to create a real-world example of how our platform can transform any website into a fully-functional online store.
+This is a **proof-of-concept** ecommerce site that I built to challenge myself to see if I could build a robust ecommerce web application using AI coding tools without ever consulting a real developer. While I'm not a developer, my role at Commerce Layer inspired me to create a real-world example of how to build a fully-functional online store using only AI coding tools.
 
-> **Note: This is a demonstration site - no actual products are for sale!**
+> **Note: This is a demo site. No actual products are for sale.**
 
 ## Table of Contents
 
