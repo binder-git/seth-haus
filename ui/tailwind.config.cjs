@@ -1,4 +1,6 @@
 /** @type {import('tailwindcss').Config} */
+const { fontFamily } = require('tailwindcss/defaultTheme');
+
 module.exports = {
   content: [
     './src/**/*.{js,jsx,ts,tsx}',
@@ -8,7 +10,8 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Inter', 'sans-serif'],
+        sans: ['Inter', ...fontFamily.sans],
+        serif: ['Young Serif', 'serif'], // Added Young Serif
       },
       borderRadius: {
         lg: "var(--radius)",

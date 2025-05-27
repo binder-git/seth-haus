@@ -20,6 +20,8 @@ declare namespace JSX {
     'aside': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>;
     'img': React.DetailedHTMLProps<React.ImgHTMLAttributes<HTMLImageElement>, HTMLImageElement>;
     'cl-add-to-cart': any; // Placeholder for Commerce Layer custom element
+    'cl-cart-link': any; // Added for cart link
+    'cl-cart-count': any; // Added for cart count
   }
 }
 
