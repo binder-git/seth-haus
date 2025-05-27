@@ -13,9 +13,12 @@ export default function SimpleHeader() {
       {/* Inner container that matches main content width */}
       <div className="mx-auto max-w-7xl px-4 md:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
-          {/* Left Section - Logo with responsive text */}
+          {/* Left Section - Logo with Young Serif font */}
           <Link to="/" className="flex items-center flex-shrink-0 min-w-0">
-            <span className="font-bold text-lg sm:text-xl md:text-2xl truncate">
+            <span 
+              className="font-bold text-lg sm:text-xl md:text-2xl truncate"
+              style={{ fontFamily: "'Young Serif', serif" }}
+            >
               <span className="sm:hidden">Seth's Tri Haus</span>
               <span className="hidden sm:inline md:hidden">Seth's Tri Haus</span>
               <span className="hidden md:inline">Seth's Triathlon Haus</span>
@@ -57,7 +60,7 @@ export default function SimpleHeader() {
 
             {/* Commerce Layer Full Cart Link - No Mini Cart */}
             <div className="relative">
-              <cl-cart-link class="relative inline-block">
+              <cl-cart-link className="relative inline-block">
                 <span className="relative inline-flex items-center p-1.5 sm:p-2 hover:bg-accent rounded-md transition-colors cursor-pointer">
                   <ShoppingCart className="h-5 w-5 sm:h-6 sm:w-6" />
                   {/* Hide "Cart" text on very small screens */}
@@ -65,8 +68,6 @@ export default function SimpleHeader() {
                   {/* Cart count */}
                   <span className="ml-1 text-xs sm:text-sm">(<cl-cart-count></cl-cart-count>)</span>
                 </span>
-                
-                {/* Removed the cl-cart element - now clicking will go to full hosted cart */}
               </cl-cart-link>
             </div>
           </div>
