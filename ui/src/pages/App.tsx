@@ -2,11 +2,15 @@ import React from "react";
 import { useMarketStore } from "@/utils/market-store";
 import { Market } from '@/types';
 import { Outlet, useLocation } from "react-router-dom";
+import { usePageTracking } from "@/hooks/usePageTracking";
 
 export default function App() {
   const location = useLocation();
   // Use the global market store - it already has a default value
   const { market } = useMarketStore();
+
+  // Add page tracking
+  usePageTracking();
 
   // Update Commerce Layer configuration when market changes
   React.useEffect(() => {
