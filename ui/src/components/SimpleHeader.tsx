@@ -9,7 +9,7 @@ export default function SimpleHeader() {
   const { clReady } = useAppContext();
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       {/* Inner container that matches main content width */}
       <div className="mx-auto max-w-7xl px-4 md:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
@@ -58,9 +58,9 @@ export default function SimpleHeader() {
             {/* MarketSwitcher with responsive sizing */}
             <MarketSwitcher className="text-xs sm:text-sm" />
 
-            {/* Commerce Layer Full Cart Link - No Mini Cart */}
-            <div className="relative">
-              <cl-cart-link className="relative inline-block">
+            {/* Commerce Layer Mini Cart with improved z-index */}
+            <div className="relative z-50">
+              <cl-cart-link>
                 <span className="relative inline-flex items-center p-1.5 sm:p-2 hover:bg-accent rounded-md transition-colors cursor-pointer">
                   <ShoppingCart className="h-5 w-5 sm:h-6 sm:w-6" />
                   {/* Hide "Cart" text on very small screens */}
@@ -68,6 +68,10 @@ export default function SimpleHeader() {
                   {/* Cart count */}
                   <span className="ml-1 text-xs sm:text-sm">(<cl-cart-count></cl-cart-count>)</span>
                 </span>
+                {/* Mini Cart Component */}
+                <cl-cart type="mini">
+                  <cl-cart-count></cl-cart-count>
+                </cl-cart>
               </cl-cart-link>
             </div>
           </div>
