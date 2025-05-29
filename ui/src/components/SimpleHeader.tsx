@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { MarketSwitcher } from './MarketSwitcher';
 import { useAppContext } from './AppProvider';
 import { ShoppingCart, X } from "lucide-react";
-import { AnalyticsService } from "@/utils/analytics"; // Add this import
+import { AnalyticsService } from "@/utils/analytics";
 
 export default function SimpleHeader() {
   const navigate = useNavigate();
@@ -43,8 +43,11 @@ export default function SimpleHeader() {
             data-gtm="header_logo_link_click_home"
           >
             <span 
-              className="font-bold text-lg sm:text-xl md:text-2xl truncate"
-              style={{ fontFamily: "'Young Serif', serif" }}
+              className="text-lg sm:text-xl md:text-2xl truncate"
+              style={{ 
+                fontFamily: "'Young Serif', serif",
+                fontWeight: "bold"
+              }}
             >
               <span className="sm:hidden">Seth's Tri Haus</span>
               <span className="hidden sm:inline md:hidden">Seth's Tri Haus</span>
