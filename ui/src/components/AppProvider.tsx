@@ -5,6 +5,7 @@ import { SimpleFooter } from './SimpleFooter';
 import SimpleHeader from './SimpleHeader';
 import { Market } from "@/types";
 import { useMarketStore } from "@/utils/market-store";
+import { AnalyticsService } from "@/utils/analytics";
 
 export interface AppContextProps {
   clientId: string | null;
@@ -42,6 +43,11 @@ export const AppProvider = ({ children }: AppProviderProps): React.ReactElement 
   const [v2ConfigReady, setV2ConfigReady] = useState(false);
 
   const { market } = useMarketStore();
+
+  // Initialize Analytics on app start
+  useEffect(() => {
+    AnalyticsService.initialize();
+  }, []);
 
   // Default values since we're removing the config
   const clientId = null;
