@@ -47,7 +47,7 @@ const CATEGORIES = [
   { id: 'bike', name: 'Bike', slug: 'bike' },
   { id: 'run', name: 'Run', slug: 'run' },
   { id: 'swim', name: 'Swim', slug: 'swim' },
-  { id: 'tri', name: 'Triathlon', slug: 'tri' }
+  { id: 'triathlon', name: 'Triathlon', slug: 'triathlon' }
 ];
 
 const Products: React.FC = () => {
@@ -168,7 +168,7 @@ const Products: React.FC = () => {
         'bike': ['bike', 'cycling', 'bicycle', 'wheel', 'pedal', 'chain'],
         'run': ['run', 'running', 'marathon', 'shoe', 'trainer'],
         'swim': ['swim', 'swimming', 'pool', 'goggle', 'suit'],
-        'tri': ['tri', 'triathlon', 'transition']
+        'triathlon': ['tri', 'triathlon', 'transition']
       };
       
       const keywords = categoryKeywords[currentCategory as keyof typeof categoryKeywords] || [];
