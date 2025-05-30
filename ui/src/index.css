@@ -38,7 +38,7 @@
     --card: 240 10% 3.9%;
     --card-foreground: 0 0% 98%;
     --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
+    --popover-foreground: 240 10% 3.9%;
     --primary: 0 0% 98%;
     --primary-foreground: 240 5.9% 10%;
     --secondary: 240 3.7% 15.9%;
@@ -87,21 +87,62 @@
 }
 
 @layer utilities {
-  /* Commerce Layer Mini Cart Fixes */
+  /* Commerce Layer Mini Cart - Break out of component boundaries */
   cl-cart[type="mini"][open] {
     display: block !important;
     position: fixed !important;
     top: 0 !important;
     right: 0 !important;
-    width: 400px !important; /* Fixed: Changed from 550px to 400px */
+    width: 400px !important;
     height: 100vh !important;
     background-color: hsl(var(--background)) !important;
     z-index: 9999 !important;
     border-left: 1px solid hsl(var(--border)) !important;
     box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1) !important;
-    padding: 20px !important;
     box-sizing: border-box !important;
     overflow-y: auto !important;
+    
+    /* Reserve space for header area but make it transparent */
+    --cl-cart-mini-padding-top: 80px;
+    --cl-cart-mini-padding-x: 20px;
+    --cl-cart-mini-padding-bottom: 20px;
+  }
+
+  /* Create transparent header space within mini-cart */
+  cl-cart[type="mini"][open]::before {
+    content: "" !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    height: 80px !important;
+    background: transparent !important;
+    z-index: 1 !important;
+  }
+
+  /* Position close button with proper padding from top */
+  cl-cart[type="mini"]::part(close-button) {
+    top: 25px !important;
+    right: 25px !important;
+    z-index: 10 !important;
+  }
+
+  /* Ensure cart content starts below the transparent header space */
+  cl-cart[type="mini"]::part(iframe) {
+    margin-top: 80px !important;
+    margin-left: 20px !important;
+    margin-right: 20px !important;
+    margin-bottom: 20px !important;
+    height: calc(100vh - 100px) !important;
+    background: hsl(var(--background)) !important;
+  }
+
+  /* Make the actual header transparent when mini-cart is open */
+  body:has(cl-cart[type="mini"][open]) header {
+    background: transparent !important;
+    backdrop-filter: none !important;
+    border-bottom: none !important;
+    box-shadow: none !important;
   }
 
   /* Mobile-specific mini-cart fixes */
